@@ -36,6 +36,10 @@ const topLogoutBtn = document.getElementById("logout-btn");
 const regLocked = document.getElementById("registration-locked-state");
 const regUnlocked = document.getElementById("registration-unlocked-state");
 
+const speakerPortal = document.getElementById("speaker-upload-portal");
+const attendeePortal = document.getElementById("attendee-materials-portal");
+const materialsLocked = document.getElementById("materials-locked-portal");
+
 let isLoginMode = true;
 
 // Expose open/close functions to window so inline onclick handlers work
@@ -132,6 +136,10 @@ window.logoutUser = (e) => {
   });
 };
 
+window.uploadMaterial = () => {
+  alert("File selected! To actually host files securely, Firebase Storage configuration will be enabled next.");
+};
+
 // Listen to auth state changes
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -145,6 +153,18 @@ onAuthStateChanged(auth, (user) => {
       regLocked.style.display = "none";
       regUnlocked.style.display = "block";
     }
+    
+    if(materialsLocked && attendeePortal && speakerPortal) {
+      materialsLocked.style.display = "none";
+      
+      // TODO: In the future, check Firestore for user roles
+      // e.g., if(userDoc.role === 'speaker') ...
+      // For now, we simulate that any logged-in user is an approved attendee
+      // and we also show the speaker portal to demonstrate functionality.
+      attendeePortal.style.display = "block";
+      speakerPortal.style.display = "block";
+    }
+
   } else {
     // User is signed out
     topLoginBtn.style.display = "inline-block";
@@ -155,6 +175,12 @@ onAuthStateChanged(auth, (user) => {
     if(regLocked && regUnlocked) {
       regLocked.style.display = "block";
       regUnlocked.style.display = "none";
+    }
+    
+    if(materialsLocked && attendeePortal && speakerPortal) {
+      materialsLocked.style.display = "block";
+      attendeePortal.style.display = "none";
+      speakerPortal.style.display = "none";
     }
   }
 });

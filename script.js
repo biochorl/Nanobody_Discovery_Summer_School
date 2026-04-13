@@ -21,8 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(sec.id === targetId) sec.classList.add('active');
       });
       
-      // Scroll to top
-      window.scrollTo(0, 0);
     });
   });
 
