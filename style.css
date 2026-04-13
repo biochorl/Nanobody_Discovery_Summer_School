@@ -265,6 +265,16 @@ h1, h2, h3, h4, .font-heading {
   box-shadow: 0 2px 12px rgba(0,0,0,0.12);
 }
 .event-hero-text { flex: 1; }
+.event-highlight {
+  font-size: 19px;
+  list-style: none;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+.event-highlight strong {
+  color: var(--orange);
+  font-size: 21px;
+}
 
 /* ===== Info Boxes ===== */
 .info-box {
