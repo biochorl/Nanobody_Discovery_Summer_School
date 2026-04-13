@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nanobodies Workshop: Binder Recovery by In Silico and In Vitro Panning</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Top Bar with Language Toggle -->
+  <div id="top-bar">
+    <div class="lang-switcher">
+      <span style="color: #fff; margin-right: 8px;" data-i18n="lang_txt">Language:</span>
+      <select id="lang-select" onchange="changeLanguage(this.value)" style="background: transparent; color: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
+        <option value="en" style="color: black;">English</option>
+        <option value="it" style="color: black;">Italiano</option>
+      </select>
+    </div>
+    <div id="user-auth-status">
+      <a href="#" id="open-login-btn" onclick="openLoginModal(event)">Login / Register</a>
+      <span id="user-email-display" style="display:none; margin-right:10px; font-weight:600;"></span>
+      <a href="#" id="logout-btn" style="display:none;" onclick="logoutUser(event)">Logout</a>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header id="site-header">
+    <h1 data-i18n="site_title">Nanobodies Workshop: Binder Recovery by In Silico and In Vitro Panning</h1>
+    <div class="event-meta" data-i18n="event_date">24–25 Sep 2026</div>
+    <div class="event-location" data-i18n="event_loc">University of Nova Gorica</div>
+    <div class="event-tz" data-i18n="event_tz">Europe/Ljubljana timezone</div>
+  </header>
+
+  <!-- Main Body Layout -->
+  <div id="page-body">
+    
+    <!-- Sidebar -->
+    <aside id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="#" class="nav-link active" data-target="overview" data-i18n="nav_overview">Overview</a></li>
+          <li><a href="#" class="nav-link" data-target="programme" data-i18n="nav_programme">Scientific Programme</a></li>
+          <li><a href="#" class="nav-link" data-target="timetable" data-i18n="nav_timetable">Timetable</a></li>
+          <li><a href="#" class="nav-link" data-target="contributions" data-i18n="nav_contrib">Programme Contributions</a></li>
+          <li><a href="#" class="nav-link" data-target="registration" data-i18n="nav_reg">Registration</a></li>
+          <li><a href="#" class="nav-link" data-target="evening" data-i18n="nav_evening">Evening Activities</a></li>
+          <li><a href="#" class="nav-link" data-target="faqs" data-i18n="nav_faqs">FAQs</a></li>
+          <li><a href="#" class="nav-link" data-target="about" data-i18n="nav_about">About Us</a></li>
+        </ul>
+      </nav>
+      
+      <div class="sidebar-section-header" data-i18n="nav_support">Contact</div>
+      <div class="sidebar-contact">
+        <a href="mailto:marco.orlando@ung.si">✉️ marco.orlando@ung.si</a>
+      </div>
+
+      <div class="sidebar-info-box">
+        <h4 data-i18n="dates_title">Dates</h4>
+        <div data-i18n="dates_info">24 Sep 2026 10:00 -<br>25 Sep 2026 16:00</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main id="main-content">
+      
+      <!-- Overview Section -->
+      <section id="overview" class="page-section active">
+        <div class="event-hero">
+          <div class="event-hero-text">
+            <h2 data-i18n="overview_h2">Overview</h2>
+            <p data-i18n="overview_p1">Four-day intensive training for early-stage researchers:</p>
+            <ul>
+              <li><strong data-i18n="when">When:</strong> 24. - 25. September 2026</li>
+              <li><strong data-i18n="where">Where:</strong> University of Nova Gorica, Gorica, Slovenia (campus Rožna Dolina: <a href="https://maps.app.goo.gl/PM1hABKpAfYEtW3E6" class="map-link">map</a>)</li>
+            </ul>
+            <p><strong>Keynote Speaker I:</strong> Prof. Dr. San Hadži, University of Ljubljana<br>
+            <strong>Keynote Speaker II:</strong> Eva Smorodina, University of Oslo</p>
+            <p data-i18n="overview_p2">This workshop is tailored for PhD students and early-career scientists eager to learn how to discover and engineer nanobodies — single-domain antibody fragments derived from camelid heavy-chain antibodies.</p>
+          </div>
+        </div>
+
+        <h3 data-i18n="ov_learn_h">🔬 What You'll Learn</h3>
+        <ul>
+          <li data-i18n="ov_learn_1">How nanobody libraries are constructed, characterized, and screened</li>
+          <li data-i18n="ov_learn_2">Computational workflows to model, rank, or design nanobody candidates</li>
+          <li data-i18n="ov_learn_3">Hands-on training with phage display and wet-lab selection of antigen binders</li>
+        </ul>
+
+        <h3 data-i18n="ov_who_h">🎯 Who Should Apply?</h3>
+        <p data-i18n="ov_who_p">This workshop is open to PhD students with a basic background in biochemistry, molecular biology or related fields. It's ideal for researchers ready to integrate nanobody discovery into their work—computationally, experimentally or both. We will select participants based on their submitted abstract and motivation letter. To encourage learning from each other, all accepted participants are expected to deliver a 10-minute short presentation in the daily PhD2PhD sessions. Successful applicants will be notified and asked to pay a €300 registration fee (see FAQ for what is included).</p>
+
+        <h3 data-i18n="ov_phd_h">🧠 PhD2PhD Session</h3>
+        <p data-i18n="ov_phd_p">Each registered participant presents either their current PhD project as it relates to nanobody research or a method/idea they plan to adopt. Talks are strictly 10 minutes, followed by a moderated discussion with peers and lecturers. Participation in these sessions is a requirement of registration.</p>
+
+        <h3 data-i18n="ov_collab_h">🤝 Collaboration & Networking</h3>
+        <p data-i18n="ov_collab_p">The program includes informal discussion rounds, dedicated networking events, and social activities designed to foster connections and future collaborations.</p>
+
+        <h3 data-i18n="ov_chair_h">Chairpersons</h3>
+        <div class="chairpersons-grid">
+          <span class="chairperson-tag">Klara Kropivsek</span>
+          <span class="chairperson-tag">Ario de Marco</span>
+          <span class="chairperson-tag">Marco Orlando</span>
+          <span class="chairperson-tag">Sara Fortuna</span>
+          <span class="chairperson-tag">Miguel A. Soler</span>
+          <span class="chairperson-tag">Matteo De March</span>
+          <span class="chairperson-tag">Barbora Kalouskova</span>
+        </div>
+      </section>
+
+      <section id="programme" class="page-section">
+        <h2 data-i18n="prog_h2">Scientific Programme</h2>
+        <div style="text-align: center; margin-bottom: 20px;">
+          <img src="hero.png" alt="Llamas reading Nanobodies sequence graphic" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+        </div>
+        <p class="info-box note"><span class="info-icon">ℹ</span> <span data-i18n="prog_note">The Nanobodies Workshop programme is now available for download. Our keynote speaker will be announced shortly. Please note that minor changes may still occur.</span></p>
+
+        <div class="programme-item">
+          <div class="programme-item-header">Fundamentals of Nanobodies <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Speaker TBA</span>
+                <div data-i18n="prog_desc_1">Here we introduce the core principles of VHH library construction and display. Participants compare immune, naïve/pre-immune and synthetic library formats. They explore methods for generating diversity such as PCR amplification and CDR randomisation. The session also covers quality metrics—library size, complexity and error rates—and presents an overview of phage, yeast and ribosome display workflows.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="programme-item">
+          <div class="programme-item-header">In Silico Modelling and Design <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Speaker TBA</span>
+                <div data-i18n="prog_desc_2">These sessions introduce core computational workflows for nanobody discovery, beginning with repertoire profiling and homology modelling to generate initial VHH structures and assess binding via virtual panning and docking. It then progresses to de novo design strategies, showcasing machine-learning and mutational-scanning approaches for proposing novel CDR variants with enhanced stability and affinity.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="programme-item">
+          <div class="programme-item-header">Experimental Panning <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Speaker TBA</span>
+                <div data-i18n="prog_desc_3">These sessions focus on hands-on selection techniques for recovering antigen-specific VHHs. Participants run phage-display panning rounds, learn to adjust washing stringencies and elution methods, and compare solid-phase versus live-cell panning protocols. The session emphasises optimization at each round to maximise binder enrichment.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="programme-item">
+          <div class="programme-item-header">Biophysics and Optimization <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Speaker TBA</span>
+                <div data-i18n="prog_desc_4">This session focuses on computational approaches for predicting and improving nanobody biophysical properties. Beginning with homology modelling, molecular docking and molecular dynamics, it explores how these methods can assess stability, affinity and aggregation propensity of VHHs.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="programme-item">
+          <div class="programme-item-header">Structural and Imaging Applications <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Speaker TBA</span>
+                <div data-i18n="prog_desc_5">Here we address the role of nanobodies in structural biology and advanced microscopy. The session begins by examining how VHHs act as crystallization chaperones and cryo-EM stabilizers, reducing conformational heterogeneity, stabilizing transient protein states and serving as fiducial markers to improve particle alignment and orientation diversity.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="programme-item">
+          <div class="programme-item-header">PhD2PhD <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Selected Attendees</span>
+                <div data-i18n="prog_desc_6">Each evening, early-stage researchers have the opportunity to present a concise overview of their PhD projects or novel methodological concepts in ten minutes, followed by a moderated discussion. This sessions are designed to encourage peer feedback, collaborative problem-solving and the exchange of practical insights.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="programme-item">
+          <div class="programme-item-header">Keynote Lecture <span>▾</span></div>
+          <div class="programme-item-body">
+            <div class="speaker-block">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <div class="speaker-info">
+                <span class="speaker-name">Keynote TBA</span>
+                <div data-i18n="prog_desc_7">Plenary keynote addresses broad perspectives on the current research landscape and future directions of nanobody science. More information to follow.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Timetable Section -->
+      <section id="timetable" class="page-section">
+        <h2 data-i18n="cal_h2">Timetable</h2>
+        
+        <div class="timetable-days">
+          <button class="day-tab active" data-day="day1">Mon 22/09</button>
+          <button class="day-tab" data-day="day2">Tue 23/09</button>
+          <button class="day-tab" data-day="day3">Wed 24/09</button>
+          <button class="day-tab" data-day="day4">Thu 25/09</button>
+          <button class="day-tab" data-day="day5">Fri 26/09</button>
+        </div>
+
+        <div id="day1" class="timetable-day active">
+          <h3>Mon 22/09</h3>
+          
+          <div class="timetable-entry">
+            <div class="timetable-time">15:00</div>
+            <div class="timetable-item registration">
+              <strong>Registrations</strong>
+              <div class="item-location">University of Nova Gorica</div>
+            </div>
+          </div>
+          
+          <div class="timetable-entry">
+            <div class="timetable-time">16:00</div>
+            <div class="timetable-item">
+              <strong>Keynote Lecture I: Prof. San Hadži</strong>
+              <div class="item-location">University of Nova Gorica</div>
+            </div>
+          </div>
+          
+          <div class="timetable-entry">
+            <div class="timetable-time">17:00</div>
+            <div class="timetable-item social">
+              <strong>Apero</strong>
+              <div class="item-location">University of Nova Gorica</div>
+            </div>
+          </div>
+        </div>
+
+        <div id="day2" class="timetable-day">
+          <h3>Tue 23/09</h3>
+          <p class="info-box">More detailed schedule will be available soon.</p>
+        </div>
+        <div id="day3" class="timetable-day"><h3>Wed 24/09</h3><p class="info-box">More detailed schedule will be available soon.</p></div>
+        <div id="day4" class="timetable-day"><h3>Thu 25/09</h3><p class="info-box">More detailed schedule will be available soon.</p></div>
+        <div id="day5" class="timetable-day"><h3>Fri 26/09</h3><p class="info-box">More detailed schedule will be available soon.</p></div>
+      </section>
+
+      <!-- Contributions Section -->
+      <section id="contributions" class="page-section">
+        <h2 data-i18n="contrib_h2">Programme Contributions</h2>
+        
+        <div class="contribution-card">
+          <div class="contrib-title"><span class="contrib-num">9.</span> Keynote Lecture I: Prof. San Hadži</div>
+          <div class="contrib-speaker">👤 <span class="speaker-name">Prof. San Hadži</span> (Faculty of Chemistry and Chemical Technology, University of Ljubljana)</div>
+          <div class="contrib-time">🕒 22/09/25, 16:00</div>
+          <div class="contrib-type">Lecture</div>
+          <div class="contrib-abstract">Pareto trade-offs in nanobody binding affinity and its correlation with the geometrical space</div>
+        </div>
+        
+        <div class="contribution-card">
+          <div class="contrib-title"><span class="contrib-num">3.</span> Characteristics of Nanobody Libraries</div>
+          <div class="contrib-speaker">👤 <span class="speaker-name">Prof. Ario de Marco</span> (University of Nova Gorica, Slovenia)</div>
+          <div class="contrib-time">🕒 23/09/25, 09:00</div>
+          <div class="contrib-type">Lecture</div>
+          <div class="contrib-abstract">This introductory session provides a foundational overview of nanobody (VHH) libraries. Participants will learn the key differences between immune libraries, native/pre-immune libraries, and synthetic libraries.</div>
+        </div>
+        
+        <div class="contribution-card">
+          <div class="contrib-title"><span class="contrib-num">4.</span> Nanobody Isolation In Silico From Pre-Immune Libraries</div>
+          <div class="contrib-speaker">👤 <span class="speaker-name">Klara Kropivsek</span> (University of Nova Gorica)</div>
+          <div class="contrib-time">🕒 23/09/25, 11:00</div>
+          <div class="contrib-type">Lecture</div>
+          <div class="contrib-abstract">Virtual screening and docking-based identification of VHH candidates directly from NGS-sequenced naive repertoires.</div>
+        </div>
+      </section>
+
+      <!-- Registration Section -->
+      <section id="registration" class="page-section">
+        <h2 data-i18n="reg_h2">Registration</h2>
+        
+        <div class="reg-notice">
+          <div class="reg-icon">ℹ</div>
+          <div id="registration-locked-state">
+            <strong data-i18n="reg_login_req">Account required to register</strong><br>
+            <span data-i18n="reg_login_desc">You must be logged in to register for this event.</span><br>
+            <a href="#" class="register-btn" data-i18n="btn_login" onclick="openLoginModal(event)">Login to Register</a>
+          </div>
+          <div id="registration-unlocked-state" style="display:none;">
+            <strong>You are securely logged in!</strong><br>
+            <span>You may now proceed to complete your workshop registration. (Application form coming soon).</span><br>
+            <button class="register-btn" style="border:none; cursor:pointer;" onclick="alert('The abstract submission and registration form will be added here next!')">Proceed to Application</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Evening Activities Section -->
+      <section id="evening" class="page-section">
+        <h2 data-i18n="eve_h2">Evening Activities</h2>
+        <p data-i18n="eve_desc">We'll share a full schedule soon, but you can already look forward to relaxed after-hours gatherings designed to bring everyone together. Test your wits in a <strong>friendly pub quiz</strong>, enjoy a <strong>conference dinner</strong> following one of the keynote talks, and join us for an <strong>additional social outing</strong>—whether it's sampling local flavours or discovering a regional landmark—to round off each day with good food and conversation and building new connections.</p>
+      </section>
+
+      <!-- FAQs Section -->
+      <section id="faqs" class="page-section">
+        <h2 data-i18n="faq_h2">FAQs</h2>
+        
+        <div class="faq-item">
+          <div class="faq-q">1. Is the workshop free?</div>
+          <div class="faq-a">
+            No. Selected participants pay a <strong>€300 registration fee</strong>, which covers:
+            <ul>
+              <li>Accommodation at the Garage Hostel (see Q2)</li>
+              <li>All meals (lunches, coffee breaks) and social events</li>
+              <li>Wet-lab consumables and materials</li>
+            </ul>
+            <strong>Note:</strong> Transport costs are not covered, except for transfers we organize during the workshop.
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <div class="faq-q">2. What accommodation is provided?</div>
+          <div class="faq-a">
+            We've reserved rooms at Garage Hostel, Solkan. Public transport is free for all workshop attendees and stops directly in front of the hostel. There's also a bike-sharing station nearby.
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-q">3. Can I earn ECTS credits?</div>
+          <div class="faq-a">
+            We do not directly award ECTS credits. However, we will issue an official Certificate of Attendance indicating the workshop's workload and learning outcomes.
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-q">4. Is the workshop open to international applicants?</div>
+          <div class="faq-a">
+            Yes, researchers from any country are welcome to apply. We're happy to provide invitation letters and supporting documents to help with your visa application.
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-q">5. What food will be served?</div>
+          <div class="faq-a">
+            We cater to all dietary needs—vegetarian, vegan, gluten-free, halal, etc. When you register, you'll be asked to specify any dietary restrictions or allergies.
+          </div>
+        </div>
+        
+        <div class="faq-item">
+          <div class="faq-q">8. What is the cancellation policy?</div>
+          <div class="faq-a">
+            Free cancellation up to 1.9.2025. No refunds for cancellations made after 1.9.2025.
+          </div>
+        </div>
+      </section>
+
+      <!-- About Us Section -->
+      <section id="about" class="page-section">
+        <h2 data-i18n="about_h2">About Us</h2>
+        
+        <h3 data-i18n="ab_org">About the Organisers</h3>
+        <p data-i18n="ab_org_desc">The Nanobody Workshop is jointly organised by members of the Laboratory of Environmental and Life Sciences at the University of Nova Gorica and international collaborators. We are grateful for the support of everyone who helped shape the programme and make this event possible.</p>
+        
+        <h4 data-i18n="ab_scicomm">Scientific Committee</h4>
+        <p><strong>Chair:</strong> Dr. Marco Orlando<br>
+        <strong>Members:</strong> Dr. Klara Kropivšek, Prof. Ario de Marco, Dr. Claudia d'Ercole, Urša Štrancar, Lucia Cikatricisova, Mirna Nakić, Xinyu Hu, Dr. Miguel A. Soler, Dr. Sara Fortuna, Dr. Matteo De March, Dr. Barbora Kalousková</p>
+
+        <h4 data-i18n="ab_orgcomm">Organising Committee</h4>
+        <p>Dr. Marco Orlando, Dr. Klara Kropivšek, Prof. Ario de Marco, Dr. Claudia D'Ercole, Dr. Petra Raspor, Prof. Ian R. White, Nadja Lovec Santinello, Prof. Miha Pavšič (Instruct-ERIC Slovenia), PhD students of the LELS group<br>
+        We also warmly acknowledge the support of the broader LELS team for their help and encouragement throughout the planning process.</p>
+
+        <h3 data-i18n="ab_research">About the Research</h3>
+        <p data-i18n="ab_research_desc">The Ario de Marco group specialises in scalable nanobody production, focusing on efficient microbial expression systems and robust purification protocols. They have developed and refined phage display selection strategies to isolate high-affinity binders, often integrating deep sequencing to monitor selection dynamics and improve target coverage.</p>
+
+        <h3 data-i18n="ab_support">Support and Funding</h3>
+        <p data-i18n="ab_support_desc"><strong>Host Institution:</strong> University of Nova Gorica – Laboratory of Environmental and Life Sciences (LELS)<br>
+        <strong>Funding:</strong> Instruct ERIC Slovenia, SMASH (Marie Skłodowska-Curie Actions)</p>
+      </section>
+
+    </main>
+  </div>
+
+  <footer id="site-footer" style="justify-content: center; text-align: center;">
+    <div>
+      © 2025 Nanobodies Workshop — University of Nova Gorica
+    </div>
+  </footer>
+
+  <!-- Login/Register Modal -->
+  <div id="login-modal" class="modal-overlay">
+    <div class="modal-box">
+      <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+      <h2 id="modal-title">Sign In</h2>
+      
+      <div class="auth-form-group">
+        <label>Email address</label>
+        <input type="email" id="auth-email" placeholder="you@university.edu" required>
+      </div>
+      
+      <div class="auth-form-group">
+        <label>Password</label>
+        <input type="password" id="auth-password" placeholder="••••••••" required>
+      </div>
+      
+      <div id="auth-error-msg" style="color: red; font-size: 13px; margin-bottom: 10px; display: none;"></div>
+
+      <button id="auth-submit-btn" class="register-btn" style="width: 100%; text-align: center; margin-top: 5px; border:none; cursor:pointer;">Sign In</button>
+      
+      <p class="auth-switch-text">
+        <span id="auth-switch-prompt">Don't have an account?</span> 
+        <a href="#" id="auth-switch-link" onclick="toggleAuthMode(event)">Register here</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script src="lang.js"></script>
+  <script type="module" src="auth.js"></script>
+</body>
+</html>
