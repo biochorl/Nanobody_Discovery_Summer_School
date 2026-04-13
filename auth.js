@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 
 // Firebase configuration provided by the user
 // (API key is split to prevent false-positive GitHub Secret Scanner alerts)
@@ -18,6 +19,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // DOM Elements
 const loginModal = document.getElementById("login-modal");
@@ -154,15 +156,39 @@ onAuthStateChanged(auth, (user) => {
       regUnlocked.style.display = "block";
     }
     
+    // Check Firestore for user roles
     if(materialsLocked && attendeePortal && speakerPortal) {
-      materialsLocked.style.display = "none";
-      
-      // TODO: In the future, check Firestore for user roles
-      // e.g., if(userDoc.role === 'speaker') ...
-      // For now, we simulate that any logged-in user is an approved attendee
-      // and we also show the speaker portal to demonstrate functionality.
-      attendeePortal.style.display = "block";
-      speakerPortal.style.display = "block";
+      const userDocRef = doc(db, "users", user.uid);
+      getDoc(userDocRef).then((userDoc) => {
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          
+          // Role: Approved Attendee
+          if (data.isApproved === true) {
+            materialsLocked.style.display = "none";
+            attendeePortal.style.display = "block";
+          } else {
+            materialsLocked.style.display = "block";
+            materialsLocked.innerHTML = `<h3>🔒 Approval Pending</h3><p>Your account is registered, but the organizers haven't approved your access (registration fee verification) yet.</p>`;
+            attendeePortal.style.display = "none";
+          }
+          
+          // Role: Speaker
+          if (data.role === 'speaker') {
+            speakerPortal.style.display = "block";
+          } else {
+            speakerPortal.style.display = "none";
+          }
+        } else {
+          // Document doesn't exist yet (New User)
+          materialsLocked.style.display = "block";
+          materialsLocked.innerHTML = `<h3>🔒 Registration Step 2</h3><p>Welcome! Please wait for the organizers to verify your registration and unlock the workshop materials.</p>`;
+          attendeePortal.style.display = "none";
+          speakerPortal.style.display = "none";
+        }
+      }).catch((error) => {
+        console.error("Firestore Error:", error);
+      });
     }
 
   } else {
@@ -179,6 +205,7 @@ onAuthStateChanged(auth, (user) => {
     
     if(materialsLocked && attendeePortal && speakerPortal) {
       materialsLocked.style.display = "block";
+      materialsLocked.innerHTML = `<h3>🔒 Materials Locked</h3><p>Workshop materials are restricted. You must be securely logged in, have your registration fee confirmed, and be manually approved by the organizers to access the presentation downloads.</p>`;
       attendeePortal.style.display = "none";
       speakerPortal.style.display = "none";
     }
