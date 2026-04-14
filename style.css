@@ -77,6 +77,31 @@ h1, h2, h3, h4, .font-heading {
   text-decoration: none;
   font-weight: 600;
 }
+.header-location-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 2px;
+}
+.header-map-btn {
+  display: inline-flex;
+  align-items: center;
+  background: #f0f4fb;
+  border: 1px solid #c0d0e8;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  text-decoration: none !important;
+}
+.header-map-btn:hover {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
 #site-header .event-tz {
   font-size: 11px;
   color: #666;
