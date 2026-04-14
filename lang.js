@@ -1,7 +1,7 @@
 const translations = {
   "en": {
     "lang_txt": "Language:",
-    "site_title": "Nanobodies Workshop: Binder Recovery by In Silico and In Vitro Panning",
+    "site_title": "AI-Based Methods for De novo Protein & Nanobody Binder Design",
     "event_date": "24–25 Sep 2026",
     "event_loc": "University of Nova Gorica",
     "event_tz": "Europe/Ljubljana timezone",
@@ -64,7 +64,7 @@ const translations = {
   },
   "it": {
     "lang_txt": "Lingua:",
-    "site_title": "Nanobodies Workshop: Binder Recovery by In Silico and In Vitro Panning",
+    "site_title": "AI-Based Methods for De novo Protein & Nanobody Binder Design",
     "event_date": "24–25 Set 2026",
     "event_loc": "Università di Nova Gorica",
     "event_tz": "Fuso orario Europe/Ljubljana",
