@@ -56,8 +56,13 @@ body::before {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(2, 6, 23, 0.65); /* Semi-transparent overlay to reveal the city image but keep text readable */
+  background: rgba(2, 6, 23, 0.1); /* Very light overlay to reveal the bright city image */
   z-index: -2;
+  transition: background-color 0.4s ease;
+}
+
+body.scrolled::before {
+  background: rgba(2, 6, 23, 0.85); /* Darken upon scrolling for readability */
 }
 body::after {
   content: '';
