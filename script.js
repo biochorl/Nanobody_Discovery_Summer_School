@@ -199,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ===== Scroll Event for Background Opacity =====
   window.addEventListener('scroll', () => {
-    // Wait until scrolled down 40vh (closer to the 55vh margin) before darkening
-    if (window.scrollY > window.innerHeight * 0.4) {
+    // Wait until scrolled down 52vh (just before the 55vh margin hits the top) before darkening
+    if (window.scrollY > window.innerHeight * 0.52) {
       document.body.classList.add('scrolled');
     } else {
       document.body.classList.remove('scrolled');
