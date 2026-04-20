@@ -4,22 +4,26 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI-Based Methods for De novo Protein & Nanobody Binder Design</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <meta name="description" content="Workshop on AI-based methods for de novo protein and nanobody binder design. 22-26 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
+  <link rel="stylesheet" href="style.css?v=5">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+  <!-- Particles Background -->
+  <canvas id="particles-canvas"></canvas>
+
   <!-- Top Bar with Language Toggle -->
   <div id="top-bar">
     <div class="lang-switcher">
-      <span style="color: #fff; margin-right: 8px;" data-i18n="lang_txt">Language:</span>
-      <select id="lang-select" onchange="changeLanguage(this.value)" style="background: transparent; color: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 4px;">
-        <option value="en" style="color: black;">English</option>
-        <option value="it" style="color: black;">Italiano</option>
-        <option value="sl" style="color: black;">Slovenščina</option>
-        <option value="fr" style="color: black;">Français</option>
-        <option value="es" style="color: black;">Español</option>
-        <option value="de" style="color: black;">Deutsch</option>
+      <span style="color: var(--text-muted); margin-right: 4px;" data-i18n="lang_txt">🌐</span>
+      <select id="lang-select" onchange="changeLanguage(this.value)">
+        <option value="en">English</option>
+        <option value="it">Italiano</option>
+        <option value="sl">Slovenščina</option>
+        <option value="fr">Français</option>
+        <option value="es">Español</option>
+        <option value="de">Deutsch</option>
       </select>
     </div>
     <div id="user-auth-status">
@@ -32,12 +36,20 @@
   <!-- Header -->
   <header id="site-header">
     <h1 data-i18n="site_title">AI-Based Methods for De novo Protein & Nanobody Binder Design</h1>
-    <div class="event-meta" data-i18n="event_date">24–25 Sep 2026</div>
+    <div class="event-meta" data-i18n="event_date">22–26 Sep 2026</div>
     <div class="header-location-container">
       <span class="event-location" data-i18n="event_loc">University of Nova Gorica</span>
       <a href="https://maps.app.goo.gl/PM1hABKpAfYEtW3E6" target="_blank" class="header-map-btn" title="View on Google Maps">📍 Map</a>
     </div>
     <div class="event-tz" data-i18n="event_tz">Europe/Ljubljana timezone</div>
+
+    <!-- Countdown Timer -->
+    <div class="countdown-bar" id="countdown-bar">
+      <div class="countdown-unit"><span class="number" id="cd-days">---</span><span class="label">Days</span></div>
+      <div class="countdown-unit"><span class="number" id="cd-hours">--</span><span class="label">Hours</span></div>
+      <div class="countdown-unit"><span class="number" id="cd-mins">--</span><span class="label">Min</span></div>
+      <div class="countdown-unit"><span class="number" id="cd-secs">--</span><span class="label">Sec</span></div>
+    </div>
   </header>
 
   <!-- Main Body Layout -->
@@ -65,7 +77,7 @@
 
       <div class="sidebar-info-box">
         <h4 data-i18n="dates_title">Dates</h4>
-        <div data-i18n="dates_info">24 Sep 2026 10:00 -<br>25 Sep 2026 16:00</div>
+        <div data-i18n="dates_info">22 Sep 2026 15:00 -<br>26 Sep 2026 16:00</div>
       </div>
     </aside>
 
@@ -115,7 +127,7 @@
       <section id="programme" class="page-section">
         <h2 data-i18n="prog_h2">Scientific Programme</h2>
         <div style="text-align: center; margin-bottom: 20px;">
-          <img src="hero.png" alt="Llamas reading Nanobodies sequence graphic" style="max-width: 100%; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+          <img src="hero.png" alt="Llamas reading Nanobodies sequence graphic" style="max-width: 100%; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4); border: 1px solid var(--border-glass);">
         </div>
         <p class="info-box note"><span class="info-icon">ℹ</span> <span data-i18n="prog_note">The Nanobodies Workshop programme is now available for download. Our keynote speaker will be announced shortly. Please note that minor changes may still occur.</span></p>
 
@@ -123,7 +135,7 @@
           <div class="programme-item-header">Fundamentals of Nanobodies <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Speaker TBA</span>
                 <div data-i18n="prog_desc_1">Here we introduce the core principles of VHH library construction and display. Participants compare immune, naïve/pre-immune and synthetic library formats. They explore methods for generating diversity such as PCR amplification and CDR randomisation. The session also covers quality metrics—library size, complexity and error rates—and presents an overview of phage, yeast and ribosome display workflows.</div>
@@ -136,7 +148,7 @@
           <div class="programme-item-header">In Silico Modelling and Design <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Speaker TBA</span>
                 <div data-i18n="prog_desc_2">These sessions introduce core computational workflows for nanobody discovery, beginning with repertoire profiling and homology modelling to generate initial VHH structures and assess binding via virtual panning and docking. It then progresses to de novo design strategies, showcasing machine-learning and mutational-scanning approaches for proposing novel CDR variants with enhanced stability and affinity.</div>
@@ -149,7 +161,7 @@
           <div class="programme-item-header">Experimental Panning <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Speaker TBA</span>
                 <div data-i18n="prog_desc_3">These sessions focus on hands-on selection techniques for recovering antigen-specific VHHs. Participants run phage-display panning rounds, learn to adjust washing stringencies and elution methods, and compare solid-phase versus live-cell panning protocols. The session emphasises optimization at each round to maximise binder enrichment.</div>
@@ -162,7 +174,7 @@
           <div class="programme-item-header">Biophysics and Optimization <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Speaker TBA</span>
                 <div data-i18n="prog_desc_4">This session focuses on computational approaches for predicting and improving nanobody biophysical properties. Beginning with homology modelling, molecular docking and molecular dynamics, it explores how these methods can assess stability, affinity and aggregation propensity of VHHs.</div>
@@ -175,7 +187,7 @@
           <div class="programme-item-header">Structural and Imaging Applications <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Speaker TBA</span>
                 <div data-i18n="prog_desc_5">Here we address the role of nanobodies in structural biology and advanced microscopy. The session begins by examining how VHHs act as crystallization chaperones and cryo-EM stabilizers, reducing conformational heterogeneity, stabilizing transient protein states and serving as fiducial markers to improve particle alignment and orientation diversity.</div>
@@ -188,7 +200,7 @@
           <div class="programme-item-header">PhD2PhD <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Selected Attendees</span>
                 <div data-i18n="prog_desc_6">Each evening, early-stage researchers have the opportunity to present a concise overview of their PhD projects or novel methodological concepts in ten minutes, followed by a moderated discussion. This sessions are designed to encourage peer feedback, collaborative problem-solving and the exchange of practical insights.</div>
@@ -201,7 +213,7 @@
           <div class="programme-item-header">Keynote Lecture <span>▾</span></div>
           <div class="programme-item-body">
             <div class="speaker-block">
-              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23ccc'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
+              <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23475569'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" alt="Speaker Photo" class="speaker-photo">
               <div class="speaker-info">
                 <span class="speaker-name">Keynote TBA</span>
                 <div data-i18n="prog_desc_7">Plenary keynote addresses broad perspectives on the current research landscape and future directions of nanobody science. More information to follow.</div>
@@ -265,27 +277,27 @@
         <h2 data-i18n="contrib_h2">Programme Contributions</h2>
 
         <!-- Portals injected for Speaker and Approved Attendees -->
-        <div id="speaker-upload-portal" style="display:none; background: #e0f2fe; border: 1px solid #bae6fd; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-          <h3 style="margin-top:0; margin-bottom:8px; color:#0369a1; font-size:18px;">🎙️ Speaker Portal</h3>
-          <p style="font-size:14px; margin-bottom: 12px; color:#0c4a6e;">As an official speaker, you can securely upload your slides and materials here. They will only be visible to attendees who have paid the registration fee.</p>
+        <div id="speaker-upload-portal" style="display:none; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+          <h3 style="margin-top:0; margin-bottom:8px; color: var(--accent-glow); font-size:18px;">🎙️ Speaker Portal</h3>
+          <p style="font-size:14px; margin-bottom: 12px; color: var(--text-muted);">As an official speaker, you can securely upload your slides and materials here. They will only be visible to attendees who have paid the registration fee.</p>
           <div style="display:flex; gap:10px; align-items:center;">
-            <input type="file" id="material-upload" style="border: 1px solid #cbd5e1; padding: 6px; border-radius: 4px; background: white; font-family: inherit;">
-            <button class="register-btn" style="border:none; cursor:pointer; padding: 8px 16px;" onclick="uploadMaterial()">Upload Material</button>
+            <input type="file" id="material-upload" style="border: 1px solid var(--border-glass); padding: 6px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text); font-family: inherit;">
+            <button class="register-btn" style="border:none; cursor:pointer; padding: 8px 16px; margin-top: 0;" onclick="uploadMaterial()">Upload Material</button>
           </div>
         </div>
 
-        <div id="attendee-materials-portal" style="display:none; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-          <h3 style="margin-top:0; margin-bottom:8px; color:#0f766e; font-size:18px;">🎓 Exclusive Materials</h3>
-          <p style="font-size:14px; margin-bottom: 12px; color:#115e59;">Welcome! Your registration fee has been verified. You now have full access to download speaker materials from the workshop.</p>
+        <div id="attendee-materials-portal" style="display:none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+          <h3 style="margin-top:0; margin-bottom:8px; color: #34d399; font-size:18px;">🎓 Exclusive Materials</h3>
+          <p style="font-size:14px; margin-bottom: 12px; color: var(--text-muted);">Welcome! Your registration fee has been verified. You now have full access to download speaker materials from the workshop.</p>
           <ul style="list-style: none; padding: 0; margin: 0; font-size: 14px;">
-            <li style="margin-bottom: 8px;">📄 <a href="#" style="color: #0d9488; font-weight: 600;">Lecture 1: Characteristics of Nanobody Libraries (PDF)</a></li>
-            <li>📄 <a href="#" style="color: #0d9488; font-weight: 600;">Lecture 2: Nanobody Isolation In Silico (PDF)</a></li>
+            <li style="margin-bottom: 8px;">📄 <a href="#" style="color: #34d399; font-weight: 600;">Lecture 1: Characteristics of Nanobody Libraries (PDF)</a></li>
+            <li>📄 <a href="#" style="color: #34d399; font-weight: 600;">Lecture 2: Nanobody Isolation In Silico (PDF)</a></li>
           </ul>
         </div>
 
-        <div id="materials-locked-portal" style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 20px; margin-bottom: 24px;">
-          <h3 style="margin-top:0; margin-bottom:8px; color:#dc2626; font-size:18px;">🔒 Materials Locked</h3>
-          <p style="font-size:14px; margin: 0; color:#991b1b;">Workshop materials are restricted. You must be securely logged in, have your registration fee confirmed, and be manually approved by the organizers to access the presentation downloads.</p>
+        <div id="materials-locked-portal" style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
+          <h3 style="margin-top:0; margin-bottom:8px; color: var(--accent-rose); font-size:18px;">🔒 Materials Locked</h3>
+          <p style="font-size:14px; margin: 0; color: var(--text-muted);">Workshop materials are restricted. You must be securely logged in, have your registration fee confirmed, and be manually approved by the organizers to access the presentation downloads.</p>
         </div>
         
         
@@ -420,9 +432,18 @@
 
   <footer id="site-footer" style="justify-content: center; text-align: center;">
     <div>
-      © 2025 Nanobodies Workshop — University of Nova Gorica
+      © 2025 Protein & Nanobody Design Workshop — University of Nova Gorica
     </div>
   </footer>
+
+  <!-- Mobile Bottom Nav -->
+  <nav class="mobile-nav" id="mobile-nav">
+    <a href="#" class="mob-nav-link active" data-target="overview"><span class="nav-icon">🏠</span>Overview</a>
+    <a href="#" class="mob-nav-link" data-target="programme"><span class="nav-icon">🔬</span>Programme</a>
+    <a href="#" class="mob-nav-link" data-target="timetable"><span class="nav-icon">📅</span>Schedule</a>
+    <a href="#" class="mob-nav-link" data-target="registration"><span class="nav-icon">✍️</span>Register</a>
+    <a href="#" class="mob-nav-link" data-target="faqs"><span class="nav-icon">❓</span>FAQs</a>
+  </nav>
 
   <!-- Login/Register Modal -->
   <div id="login-modal" class="modal-overlay">
@@ -440,7 +461,7 @@
         <input type="password" id="auth-password" placeholder="••••••••" required>
       </div>
       
-      <div id="auth-error-msg" style="color: red; font-size: 13px; margin-bottom: 10px; display: none;"></div>
+      <div id="auth-error-msg" style="color: var(--accent-rose); font-size: 13px; margin-bottom: 10px; display: none;"></div>
 
       <button id="auth-submit-btn" class="register-btn" style="width: 100%; text-align: center; margin-top: 5px; border:none; cursor:pointer;">Sign In</button>
       
@@ -451,8 +472,8 @@
     </div>
   </div>
 
-  <script src="script.js?v=3"></script>
-  <script src="lang.js?v=3"></script>
-  <script type="module" src="auth.js?v=3"></script>
+  <script src="script.js?v=5"></script>
+  <script src="lang.js?v=5"></script>
+  <script type="module" src="auth.js?v=5"></script>
 </body>
 </html>
