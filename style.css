@@ -611,6 +611,24 @@ blockquote {
   font-style: italic;
   margin-top: 6px;
 }
+.timetable-item .speaker-label {
+  font-size: 12px;
+  color: var(--accent-glow);
+  font-weight: 600;
+  margin-top: 4px;
+}
+.timetable-item.break {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--border-glass);
+  border-left-color: var(--text-muted);
+  font-style: italic;
+  opacity: 0.8;
+}
+.timetable-item.lab {
+  background: rgba(16, 185, 129, 0.08);
+  border-color: rgba(16, 185, 129, 0.2);
+  border-left-color: #10b981;
+}
 
 /* ===== Contributions ===== */
 .contribution-card {

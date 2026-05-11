@@ -23,7 +23,7 @@ const translations = {
     "ov_learn_2": "Computational workflows to model, rank, or design nanobody candidates",
     "ov_learn_3": "Hands-on training with phage display and wet-lab selection of antigen binders",
     "ov_who_h": "🎯 Who Should Apply?",
-    "ov_who_p": "This Summer School is open to Master and PhD students with a basic background in biochemistry, structural biology, molecular biology or related fields. It's ideal for researchers ready to integrate nanobody discovery into their work—computationally, experimentally or both. We will select max 10 participants based on their submitted abstract and motivation letter. Successful applicants will be notified and asked to pay a €30 registration fee (see FAQ for what is included).",
+    "ov_who_p": "This Summer School is open to Master and PhD students with a basic background in biochemistry, structural biology, molecular biology or related fields. It's ideal for who is ready to integrate nanobody discovery into their work—computationally, experimentally or both. We will select max 10 participants based on their submitted abstract and motivation letter. Successful applicants will be notified and asked to pay a €30 registration fee (see FAQ for what is included).",
     "ov_phd_h": "🧠 Present Your Research",
     "ov_phd_p": "Each registered participant presents either their current PhD project as it relates to nanobody research or a method/idea they plan to adopt. Talks are strictly 10 minutes, followed by a moderated discussion with peers and lecturers. Participation in these sessions is a requirement of registration.",
     "ov_collab_h": "🤝 Collaboration & Networking",
