@@ -31,7 +31,7 @@ const translations = {
     "ov_chair_h": "",
     
     "prog_h2": "Scientific Programme",
-    "prog_note": "The Nanobodies Summer School programme is now available for download. Our keynote speaker will be announced shortly. Please note that minor changes may still occur.",
+    "prog_note": "The final Summer School programme will be available for download. Please note that changes may still occur.",
     "prog_desc_1": "Here we introduce the core principles of VHH library construction and display. Participants compare immune, naïve/pre-immune and synthetic library formats. They explore methods for generating diversity such as PCR amplification and CDR randomisation. The session also covers quality metrics—library size, complexity and error rates—and presents an overview of phage, yeast and ribosome display workflows.",
     "prog_desc_2": "These sessions introduce core computational workflows for nanobody discovery, beginning with repertoire profiling and homology modelling to generate initial VHH structures and assess binding via virtual panning and docking. It then progresses to de novo design strategies, showcasing machine-learning and mutational-scanning approaches for proposing novel CDR variants with enhanced stability and affinity.",
     "prog_desc_3": "These sessions focus on hands-on selection techniques for recovering antigen-specific VHHs. Participants run phage-display panning rounds, learn to adjust washing stringencies and elution methods, and compare solid-phase versus live-cell panning protocols. The session emphasises optimization at each round to maximise binder enrichment.",
@@ -94,7 +94,7 @@ const translations = {
     "ov_chair_h": "",
     
     "prog_h2": "Programma Scientifico",
-    "prog_note": "Il programma completo della Summer School è ora disponibile. Sono possibili variazioni.",
+    "prog_note": "Il programma finale della Summer School sarà disponibile per il download. Sono possibili variazioni.",
     "prog_desc_1": "Introduzione ai principi della costruzione delle librerie VHH. I partecipanti esplorano i formati di libreria immuni, naive e sintetici, e le metriche di qualità.",
     "prog_desc_2": "Workflow computazionali. Profilazione di repertorio, modellistica omologica e docking per valutare il binding. Si prosegue con il design de novo tramite approcci di machine-learning.",
     "prog_desc_3": "Queste sessioni si concentrano su tecniche pratiche di selezione e panning (phage display, aggiustamento di stringenza del lavaggio).",
@@ -157,7 +157,7 @@ const translations = {
     "ov_chair_h": "",
     
     "prog_h2": "Znanstveni program",
-    "prog_note": "Celoten program poletne šole je zdaj na voljo. Možne so spremembe.",
+    "prog_note": "Končni program poletne šole bo na voljo za prenos. Možne so spremembe.",
     "prog_desc_1": "Uvod v načela gradnje VHH knjižnic. Udeleženci raziskujejo imunske, naivne in sintetične knjižnice ter meritve kakovosti.",
     "prog_desc_2": "Računalniški delovni tokovi. Profiliranje repertoarja, homološko modeliranje in doking (docking). Nadaljuje se z de novo oblikovanjem prek metod strojnega učenja.",
     "prog_desc_3": "Te seje se osredotočajo na praktične tehnike selekcije in paninga (prilagoditev strogosti izpiranja in protokoli).",
@@ -220,7 +220,7 @@ const translations = {
     "ov_chair_h": "",
     
     "prog_h2": "Programme Scientifique",
-    "prog_note": "Le programme complet de l'École d'été est maintenant disponible.",
+    "prog_note": "Le programme final de l'École d'été sera disponible en téléchargement. Des modifications sont encore possibles.",
     "prog_desc_1": "Introduction à la construction de bibliothèques VHH.",
     "prog_desc_2": "Méthodes informatiques et conception de novo via l'apprentissage automatique.",
     "prog_desc_3": "Sessions pratiques sur le phage display.",
@@ -282,7 +282,7 @@ const translations = {
     "ov_collab_p": "El programa incluye veladas informales y actividades para fomentar futuras colaboraciones.",
     "ov_chair_h": "",
     "prog_h2": "Programa Científico",
-    "prog_note": "El programa completo de la Escuela de Verano ya está disponible.",
+    "prog_note": "El programa final de la Escuela de Verano estará disponible para su descarga. Son posibles variaciones.",
     "prog_desc_1": "Introducción a los principios de construcción de bibliotecas VHH.",
     "prog_desc_2": "Flujos de trabajo computacionales y diseño de novo mediante aprendizaje automático.",
     "prog_desc_3": "Sesiones prácticas sobre técnicas de selección con phage display.",
@@ -340,7 +340,7 @@ const translations = {
     "ov_collab_p": "Das Programm umfasst informelle Abendveranstaltungen, um künftige Kooperationen zu fördern.",
     "ov_chair_h": "",
     "prog_h2": "Wissenschaftliches Programm",
-    "prog_note": "Das vollständige Programm der Sommerschule ist jetzt verfügbar.",
+    "prog_note": "Das endgültige Programm der Sommerschule wird zum Download bereitstehen. Änderungen vorbehalten.",
     "prog_desc_1": "Einführung in die Prinzipien der VHH-Bibliothekskonstruktion.",
     "prog_desc_2": "Computergestützte Workflows und De-novo-Design durch maschinelles Lernen.",
     "prog_desc_3": "Praktische Sitzungen zum Phage Display und Selektionstechniken.",
