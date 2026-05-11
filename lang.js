@@ -49,7 +49,7 @@ const translations = {
     "btn_login": "Login to Register",
     
     "eve_h2": "Evening Activities",
-    "eve_desc": "We'll share a full schedule soon, but you can already look forward to relaxed after-hours gatherings designed to bring everyone together. Test your wits in a <strong>friendly pub quiz</strong>, enjoy a <strong>conference dinner</strong> following one of the keynote talks, and join us for an <strong>additional social outing</strong>—whether it's sampling local flavours or discovering a regional landmark—to round off each day with good food and conversation and building new connections.",
+    "eve_desc": "We'll share a full schedule soon, but you can already look forward to relaxed after-hours gatherings designed to bring everyone together. We will have a social dinner with all the speakers on the second day. The Summer School overlaps with <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, the most awaited event of the year for the city of Gorizia: as any year, this event will be hosted along the main city streets and involve several food and beverage enogastronomic stands from all over the world, music, fun and shows. An event to not miss!",
     
     "faq_h2": "FAQs",
     "about_h2": "About Us",
@@ -112,7 +112,7 @@ const translations = {
     "btn_login": "Accedi per Registrarti",
     
     "eve_h2": "Attività Serali",
-    "eve_desc": "Condivideremo a breve l'intero programma, ma puoi già aspettarti piacevoli serate dopo la conferenza, un pub quiz, una cena di conferenza e altre escursioni sociali.",
+    "eve_desc": "Condivideremo presto il programma completo, ma potete già aspettarvi incontri serali rilassati. Avremo una cena sociale con tutti i relatori il secondo giorno. La Summer School coincide con <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, l'evento più atteso dell'anno per la città di Gorizia: come ogni anno, questo evento si terrà lungo le vie principali della città con stand enogastronomici da tutto il mondo, musica, divertimento e spettacoli. Un evento da non perdere!",
     
     "faq_h2": "Domande Frequenti (FAQ)",
     "about_h2": "Chi Siamo",
@@ -175,7 +175,7 @@ const translations = {
     "btn_login": "Prijavite se za registracijo",
     
     "eve_h2": "Večerne aktivnosti",
-    "eve_desc": "Celoten urnik bomo delili kmalu, vendar se že lahko veselite sproščenih večernih srečanj, pub kviza, konferenčne večerje in drugih družabnih izletov.",
+    "eve_desc": "Kmalu bomo delili celoten urnik, vendar se že lahko veselite sproščenih večernih druženj. Drugi dan bomo imeli družabno večerjo z vsemi predavatelji. Poletna šola se prekriva z dogodkom <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, najbolj pričakovanim dogodkom leta v Gorici: kot vsako leto bo ta dogodek potekal po glavnih mestnih ulicah in vključeval številne stojnice s hrano in pijačo z vsega sveta, glasbo in zabavo. Dogodek, ki ga ne smete zamuditi!",
     
     "faq_h2": "Pogosta vprašanja (FAQ)",
     "about_h2": "O nas",
@@ -238,7 +238,7 @@ const translations = {
     "btn_login": "Connectez-vous pour vous inscrire",
     
     "eve_h2": "Soirées",
-    "eve_desc": "Pub quiz, dîner de conférence et échanges décontractés.",
+    "eve_desc": "Nous partagerons bientôt un programme complet, mais vous pouvez déjà vous réjouir de rencontres détendues. Nous aurons un dîner social avec tous les intervenants le deuxième jour. L'École d'été coïncide avec <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, l'événement le plus attendu de l'année pour la ville de Gorizia : cet événement se déroulera dans les rues principales avec des stands du monde entier, de la musique et des spectacles. Un événement à ne pas manquer !",
     
     "faq_h2": "FAQ",
     "about_h2": "À propos",
@@ -297,7 +297,7 @@ const translations = {
     "reg_login_desc": "Debes iniciar sesión para inscribirte en este evento.",
     "btn_login": "Inicia sesión para registrarte",
     "eve_h2": "Actividades nocturnas",
-    "eve_desc": "Pronto compartiremos el programa completo, pero ya puedes anticipar reuniones relajadas, un pub quiz, una cena de conferencia y otras excursiones sociales.",
+    "eve_desc": "Pronto compartiremos el programa completo, pero ya podéis esperar encuentros relajados. Tendremos una cena social con todos los ponentes el segundo día. La Escuela de Verano coincide con <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, el evento más esperado del año para la ciudad de Gorizia: este evento se celebrará en las calles principales con puestos de comida de todo el mundo, música y espectáculos. ¡Un evento que no te puedes perder!",
     "faq_h2": "Preguntas Frecuentes",
     "about_h2": "Acerca de nosotros",
     "ab_org": "Los organizadores",
@@ -355,7 +355,7 @@ const translations = {
     "reg_login_desc": "Sie müssen eingeloggt sein, um sich für diese Veranstaltung zu registrieren.",
     "btn_login": "Anmelden zur Registrierung",
     "eve_h2": "Abendaktivitäten",
-    "eve_desc": "Wir teilen bald den vollen Zeitplan, aber freuen Sie sich auf entspannte Abende mit Pub-Quiz, Konferenzdinner und mehr.",
+    "eve_desc": "Wir werden bald einen vollständigen Zeitplan veröffentlichen, aber Sie können sich schon jetzt auf entspannte Abende freuen. Am zweiten Tag werden wir ein gemeinsames Abendessen mit allen Referenten haben. Die Sommerschule überschneidet sich mit <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, dem am sehnlichsten erwarteten Ereignis des Jahres für die Stadt Gorizia: Dieses Ereignis findet in den Hauptstraßen der Stadt statt, mit Ständen aus der ganzen Welt, Musik und Shows. Ein Ereignis, das man nicht verpassen sollte!",
     "faq_h2": "Häufig gestellte Fragen (FAQ)",
     "about_h2": "Über uns",
     "ab_org": "Die Organisatoren",
