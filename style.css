@@ -2,24 +2,24 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --primary: #0f172a;
-  --primary-mid: #1e293b;
+  --primary: #f8fafc;
+  --primary-mid: #e2e8f0;
   --primary-light: #3b82f6;
-  --accent: #06b6d4;
-  --accent-glow: #22d3ee;
-  --accent-warm: #f59e0b;
-  --accent-rose: #f43f5e;
-  --text: #e2e8f0;
-  --text-muted: #94a3b8;
-  --text-dark: #1e293b;
-  --bg-dark: #020617;
-  --bg-card: rgba(15, 23, 42, 0.8);
-  --bg-glass: rgba(255, 255, 255, 0.05);
-  --border-glass: rgba(255, 255, 255, 0.1);
-  --border-glow: rgba(6, 182, 212, 0.3);
-  --gradient-main: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
-  --gradient-accent: linear-gradient(135deg, #06b6d4, #3b82f6, #8b5cf6);
-  --gradient-warm: linear-gradient(135deg, #f59e0b, #ef4444);
+  --accent: #0284c7;
+  --accent-glow: #0369a1;
+  --accent-warm: #ea580c;
+  --accent-rose: #e11d48;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --text-dark: #020617;
+  --bg-dark: #f8fafc;
+  --bg-card: rgba(255, 255, 255, 0.85);
+  --bg-glass: rgba(255, 255, 255, 0.6);
+  --border-glass: rgba(255, 255, 255, 0.5);
+  --border-glow: rgba(2, 132, 199, 0.3);
+  --gradient-main: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #f8fafc 100%);
+  --gradient-accent: linear-gradient(135deg, #0284c7, #3b82f6, #6366f1);
+  --gradient-warm: linear-gradient(135deg, #ea580c, #dc2626);
   --sidebar-width: 240px;
   --radius: 16px;
   --radius-sm: 8px;
@@ -56,7 +56,7 @@ body::before {
   position: fixed;
   top: 0; left: 0;
   width: 100%; height: 100%;
-  background: rgba(2, 6, 23, 0.1); /* Very light overlay to reveal the bright city image */
+  background: rgba(255, 255, 255, 0.1); /* Very light overlay initially */
   z-index: -2;
   transition: all 0.5s ease;
   backdrop-filter: blur(0px);
@@ -64,7 +64,7 @@ body::before {
 }
 
 body.scrolled::before {
-  background: rgba(255, 255, 255, 0.15); /* Light glass effect instead of heavy darkness */
+  background: rgba(255, 255, 255, 0.65); /* Stronger white glass effect when scrolled */
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -96,7 +96,7 @@ body::after {
 
 /* ===== Top Bar ===== */
 #top-bar {
-  background: rgba(2, 6, 23, 0.7);
+  background: var(--bg-card);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid var(--border-glass);
@@ -126,7 +126,7 @@ body::after {
 #lang-select {
   appearance: none;
   -webkit-appearance: none;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-glass);
   color: var(--text);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-pill);
@@ -156,7 +156,7 @@ body::after {
 
 /* ===== Header ===== */
 #site-header {
-  background: rgba(15, 23, 42, 0.6);
+  background: var(--bg-card);
   backdrop-filter: blur(30px);
   -webkit-backdrop-filter: blur(30px);
   border-bottom: 1px solid var(--border-glass);
