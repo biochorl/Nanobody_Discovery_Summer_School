@@ -55,12 +55,12 @@ const translations = {
     "about_h2": "About Us",
     "ab_org": "About the Organisers",
     "ab_org_desc": "The Nanobody Summer School is jointly organised by members of the Laboratory of Environmental and Life Sciences at the University of Nova Gorica and international collaborators. We are grateful for the support of everyone who helped shape the programme and make this event possible.",
-    "ab_scicomm": "Scientific Committee",
+    "ab_scicomm": "",
     "ab_orgcomm": "Organising Committee",
     "ab_research": "About the Research",
     "ab_research_desc": "The Ario de Marco group specialises in scalable nanobody production, focusing on efficient microbial expression systems and robust purification protocols. They have developed and refined phage display selection strategies to isolate high-affinity binders, often integrating deep sequencing to monitor selection dynamics and improve target coverage.",
     "ab_support": "Support and Funding",
-    "ab_support_desc": "<strong>Host Institution:</strong> University of Nova Gorica – Laboratory of Environmental and Life Sciences (LELS)<br><strong>Funding:</strong> Instruct ERIC Slovenia, SMASH (Marie Skłodowska-Curie Actions)"
+    "ab_support_desc": "To be updated soon."
   },
   "it": {
     "lang_txt": "Lingua:",
@@ -118,12 +118,12 @@ const translations = {
     "about_h2": "Chi Siamo",
     "ab_org": "Informazioni sugli Organizzatori",
     "ab_org_desc": "La Summer School è co-organizzata dal LELS della University of Nova Gorica assieme a collaboratori internazionali.",
-    "ab_scicomm": "Comitato Scientifico",
+    "ab_scicomm": "",
     "ab_orgcomm": "Comitato Organizzatore",
     "ab_research": "Informazioni sulla Ricerca",
     "ab_research_desc": "Il gruppo Ario de Marco è specializzato nella produzione scalabile di nanobody...",
     "ab_support": "Supporto e Finanziamenti",
-    "ab_support_desc": "<strong>Istituzione Ospitante:</strong> University of Nova Gorica – LELS<br><strong>Finanziamenti:</strong> Instruct ERIC Slovenia, SMASH (Marie Skłodowska-Curie Actions)"
+    "ab_support_desc": "Prossimamente."
   },
   "sl": {
     "lang_txt": "Jezik:",
@@ -181,12 +181,12 @@ const translations = {
     "about_h2": "O nas",
     "ab_org": "O organizatorjih",
     "ab_org_desc": "Poletno šolo soorganizirata LELS Univerze v Novi Gorici in mednarodni sodelavci.",
-    "ab_scicomm": "Znanstveni odbor",
+    "ab_scicomm": "",
     "ab_orgcomm": "Organizacijski odbor",
     "ab_research": "O raziskavi",
     "ab_research_desc": "Skupina Ario de Marco je specializirana za razširljivo proizvodnjo nanoteeles...",
     "ab_support": "Podpora in financiranje",
-    "ab_support_desc": "<strong>Gostiteljska ustanova:</strong> Univerza v Novi Gorici – LELS<br><strong>Financiranje:</strong> Instruct ERIC Slovenia, SMASH (Marie Skłodowska-Curie Actions)"
+    "ab_support_desc": "Kmalu bo posodobljeno."
   },
   "fr": {
     "lang_txt": "Langue:",
@@ -244,12 +244,12 @@ const translations = {
     "about_h2": "À propos",
     "ab_org": "Les organisateurs",
     "ab_org_desc": "Organisé par LELS (Université de Nova Gorica) et des partenaires internationaux pour cette École d'été.",
-    "ab_scicomm": "Comité scientifique",
+    "ab_scicomm": "",
     "ab_orgcomm": "Comité d'organisation",
     "ab_research": "Recherche",
     "ab_research_desc": "Le groupe Ario de Marco se spécialise dans la production de nanocorps...",
     "ab_support": "Soutien et financement",
-    "ab_support_desc": "<strong>Institution :</strong> Université de Nova Gorica – LELS<br><strong>Financement :</strong> Instruct ERIC Slovenia, SMASH"
+    "ab_support_desc": "À mettre à jour bientôt."
   },
   "es": {
     "lang_txt": "Idioma:",
@@ -302,12 +302,12 @@ const translations = {
     "about_h2": "Acerca de nosotros",
     "ab_org": "Los organizadores",
     "ab_org_desc": "Organizado por LELS de la Universidad de Nova Gorica y colaboradores internacionales para esta Escuela de Verano.",
-    "ab_scicomm": "Comité Científico",
+    "ab_scicomm": "",
     "ab_orgcomm": "Comité Organizador",
     "ab_research": "Sobre la Investigación",
     "ab_research_desc": "El grupo de Ario de Marco se especializa en la producción escalable de nanocuerpos...",
     "ab_support": "Apoyo y Financiación",
-    "ab_support_desc": "<strong>Institución Anfitriona:</strong> Universidad de Nova Gorica – LELS<br><strong>Financiación:</strong> Instruct ERIC Slovenia, SMASH"
+    "ab_support_desc": "Se actualizará pronto."
   },
   "de": {
     "lang_txt": "Sprache:",
@@ -360,12 +360,12 @@ const translations = {
     "about_h2": "Über uns",
     "ab_org": "Die Organisatoren",
     "ab_org_desc": "Organisiert von LELS der Universität Nova Gorica und internationalen Mitarbeitern für diese Sommerschule.",
-    "ab_scicomm": "Wissenschaftliches Komitee",
+    "ab_scicomm": "",
     "ab_orgcomm": "Organisationskomitee",
     "ab_research": "Forschung",
     "ab_research_desc": "Die Gruppe Ario de Marco ist auf die skalierbare Produktion von Nanobodies spezialisiert...",
     "ab_support": "Unterstützung und Finanzierung",
-    "ab_support_desc": "<strong>Gastinstitution:</strong> Universität Nova Gorica – LELS<br><strong>Finanzierung:</strong> Instruct ERIC Slovenia, SMASH"
+    "ab_support_desc": "Wird bald aktualisiert."
   }
 };
 
