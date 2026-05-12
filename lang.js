@@ -1,8 +1,8 @@
 const translations = {
   "en": {
     "lang_txt": "Language:",
-    "site_title": "Nanobody Discovery: Current & Future Methods",
-    "site_title_html": "Nanobody Discovery:<br>Current & Future Methods",
+    "site_title": "Nanobody Discovery Summer School: Current & Future Methods",
+    "site_title_html": "Nanobody Discovery Summer School:<br>Current & Future Methods",
     "event_date": "23–25 Sep 2026",
     "event_loc": "University of Nova Gorica",
     "event_tz": "Europe/Ljubljana timezone",
@@ -65,8 +65,8 @@ const translations = {
   },
   "it": {
     "lang_txt": "Lingua:",
-    "site_title": "Nanobody Discovery: Current & Future Methods",
-    "site_title_html": "Nanobody Discovery:<br>Current & Future Methods",
+    "site_title": "Nanobody Discovery Summer School: Current & Future Methods",
+    "site_title_html": "Nanobody Discovery Summer School:<br>Current & Future Methods",
     "event_date": "23–25 Set 2026",
     "event_loc": "Università di Nova Gorica",
     "event_tz": "Fuso orario Europe/Ljubljana",
@@ -129,8 +129,8 @@ const translations = {
   },
   "sl": {
     "lang_txt": "Jezik:",
-    "site_title": "Nanobody Discovery: Current & Future Methods",
-    "site_title_html": "Nanobody Discovery:<br>Current & Future Methods",
+    "site_title": "Nanobody Discovery Summer School: Current & Future Methods",
+    "site_title_html": "Nanobody Discovery Summer School:<br>Current & Future Methods",
     "event_date": "23.–25. sep 2026",
     "event_loc": "Univerza v Novi Gorici",
     "event_tz": "Časovni pas Evropa/Ljubljana",
@@ -193,8 +193,8 @@ const translations = {
   },
   "fr": {
     "lang_txt": "Langue:",
-    "site_title": "Nanobody Discovery: Current & Future Methods",
-    "site_title_html": "Nanobody Discovery:<br>Current & Future Methods",
+    "site_title": "Nanobody Discovery Summer School: Current & Future Methods",
+    "site_title_html": "Nanobody Discovery Summer School:<br>Current & Future Methods",
     "event_date": "23–25 Sep 2026",
     "event_loc": "Université de Nova Gorica",
     "event_tz": "Fuseau horaire Europe/Ljubljana",
@@ -257,8 +257,8 @@ const translations = {
   },
   "es": {
     "lang_txt": "Idioma:",
-    "site_title": "Nanobody Discovery: Current & Future Methods",
-    "site_title_html": "Nanobody Discovery:<br>Current & Future Methods",
+    "site_title": "Nanobody Discovery Summer School: Current & Future Methods",
+    "site_title_html": "Nanobody Discovery Summer School:<br>Current & Future Methods",
     "event_date": "23–25 Sep 2026",
     "event_loc": "Universidad de Nova Gorica",
     "event_tz": "Zona horaria Europe/Ljubljana",
@@ -316,8 +316,8 @@ const translations = {
   },
   "de": {
     "lang_txt": "Sprache:",
-    "site_title": "Nanobody Discovery: Current & Future Methods",
-    "site_title_html": "Nanobody Discovery:<br>Current & Future Methods",
+    "site_title": "Nanobody Discovery Summer School: Current & Future Methods",
+    "site_title_html": "Nanobody Discovery Summer School:<br>Current & Future Methods",
     "event_date": "23.–25. Sep. 2026",
     "event_loc": "Universität Nova Gorica",
     "event_tz": "Zeitzone Europe/Ljubljana",
