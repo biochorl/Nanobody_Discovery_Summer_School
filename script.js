@@ -207,4 +207,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // ===== Handle internal talk links =====
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('.talk-link')) {
+      e.preventDefault();
+      const href = e.target.closest('.talk-link').getAttribute('href');
+      const targetId = href.substring(1);
+      switchSection('programme');
+      setTimeout(() => {
+        const el = document.getElementById(targetId);
+        if (el) {
+          const bodyOffset = document.getElementById('page-body').offsetTop;
+          window.scrollTo({ 
+            top: el.offsetTop + bodyOffset - 100, 
+            behavior: 'smooth' 
+          });
+          // Visual feedback
+          el.style.border = '2px solid var(--accent)';
+          setTimeout(() => el.style.border = '', 2000);
+        }
+      }, 100);
+    }
+  });
+
 });

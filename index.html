@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nanobody Discovery: Current & Future Applications</title>
+  <title>Nanobody Discovery: Current & Future Methods | Summer School 2026</title>
   <meta name="description"
     content="Summer School on AI-based methods for de novo protein and nanobody binder design. 23-25 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
   <link rel="stylesheet" href="style.css?v=5">
@@ -40,7 +40,7 @@
 
   <!-- Header -->
   <header id="site-header">
-    <h1 data-i18n="site_title">Nanobody Discovery: Current & Future Applications</h1>
+    <h1 data-i18n="site_title_html">Nanobody Discovery:<br>Current & Future Methods</h1>
     <div class="event-meta" data-i18n="event_date">23–25 Sep 2026</div>
     <div class="header-location-container">
       <span class="event-location" data-i18n="event_loc">University of Nova Gorica</span>
@@ -138,7 +138,7 @@
           <div class="timetable-entry">
             <div class="timetable-time">10:00</div>
             <div class="timetable-item">
-              <strong>Welcome & Introduction on Nanobody technology</strong>
+              <a href="#talk-ario" class="talk-link"><strong>Welcome & Introduction on Nanobody technology</strong></a>
               <div class="speaker-label">👤 Prof. Ario de Marco</div>
             </div>
           </div>
@@ -146,7 +146,7 @@
           <div class="timetable-entry">
             <div class="timetable-time">11:00</div>
             <div class="timetable-item">
-              <strong>Nanobody <i>in silico</i> Screening from Pre-Immune Libraries</strong>
+              <a href="#talk-klara" class="talk-link"><strong>Nanobody <i>in silico</i> Screening from Pre-Immune Libraries</strong></a>
               <div class="speaker-label">👤 Dr. Klara Kropivsek</div>
             </div>
           </div>
@@ -161,7 +161,7 @@
           <div class="timetable-entry">
             <div class="timetable-time">13:30</div>
             <div class="timetable-item">
-              <strong>Nanobody de novo design with AI</strong>
+              <a href="#talk-marco" class="talk-link"><strong>Nanobody de novo design with AI</strong></a>
               <div class="speaker-label">👤 Dr. Marco Orlando</div>
             </div>
           </div>
@@ -176,7 +176,7 @@
           <div class="timetable-entry">
             <div class="timetable-time">15:30</div>
             <div class="timetable-item">
-              <strong>Nanobody Panning Against a Target Antigen</strong>
+              <a href="#talk-claudia" class="talk-link"><strong>Nanobody Panning Against a Target Antigen</strong></a>
               <div class="speaker-label">👤 Dr. Claudia d'Ercole</div>
             </div>
           </div>
@@ -314,93 +314,43 @@
 
       <!-- Scientific Programme Section -->
       <section id="programme" class="page-section">
-        <h2 data-i18n="prog_h2">Scientific Programme</h2>
+        <h2 data-i18n="prog_h2">Scientific talks</h2>
         <p class="info-box note"><span class="info-icon">ℹ</span> <span data-i18n="prog_note">The final Summer School programme will be available for download. Please note that changes may still occur.</span></p>
 
-        <!-- Portals injected for Speaker and Approved Attendees -->
-        <div id="speaker-upload-portal"
-          style="display:none; background: rgba(6, 182, 212, 0.08); border: 1px solid rgba(6, 182, 212, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-          <h3 style="margin-top:0; margin-bottom:8px; color: var(--accent-glow); font-size:18px;">🎙️ Speaker Portal</h3>
-          <p style="font-size:14px; margin-bottom: 12px; color: var(--text-muted);">As an official speaker, you can securely upload your slides and materials here.</p>
-          <div style="display:flex; gap:10px; align-items:center;">
-            <input type="file" id="material-upload" style="border: 1px solid var(--border-glass); padding: 6px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text); font-family: inherit;">
-            <button class="register-btn" style="border:none; cursor:pointer; padding: 8px 16px; margin-top: 0;" onclick="uploadMaterial()">Upload Material</button>
-          </div>
-        </div>
-
-        <div id="attendee-materials-portal"
-          style="display:none; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-          <h3 style="margin-top:0; margin-bottom:8px; color: #34d399; font-size:18px;">🎓 Exclusive Materials</h3>
-          <p style="font-size:14px; margin-bottom: 12px; color: var(--text-muted);">Welcome! Your registration fee has been verified. You now have full access to download speaker materials.</p>
-        </div>
-
-        <div id="materials-locked-portal"
-          style="background: rgba(244, 63, 94, 0.08); border: 1px solid rgba(244, 63, 94, 0.2); border-radius: 12px; padding: 20px; margin-bottom: 24px;">
-          <h3 style="margin-top:0; margin-bottom:8px; color: var(--accent-rose); font-size:18px;">🔒 Materials Locked</h3>
-          <p style="font-size:14px; margin: 0; color: var(--text-muted);">Summer School materials are restricted. You must be securely logged in and have your registration fee confirmed to access the presentation downloads.</p>
-        </div>
-
-        <!-- Programme Contributions Styled as Cards -->
-        <div class="contribution-card">
-          <div class="contrib-title">Keynote Lecture I: Prof. San Hadži</div>
-          <div class="contrib-speaker">👤 Prof. San Hadži (University of Ljubljana)</div>
-          <div class="contrib-time">🕒 Wed 23/09, 11:00</div>
-          <div class="contrib-type">Lecture</div>
-          <div class="contrib-abstract">Pareto trade-offs in nanobody binding affinity and its correlation with the geometrical space</div>
+        <!-- Speaker Cards -->
+        <div id="talk-ario" class="contribution-card">
+          <div class="contrib-title">Welcome & Introduction on Nanobody technology</div>
+          <div class="contrib-speaker">👤 Prof. Ario de Marco (University of Nova Gorica)</div>
+          <div class="contrib-time">🕒 Wed 23/09, 10:00</div>
+          <div class="contrib-type">Opening Lecture</div>
+          <div class="contrib-abstract">This introductory session provides a foundational overview of nanobody (VHH) libraries and their role in binder discovery. Participants will learn the key differences between immune libraries (from antigen-immunized animals), naïve or pre-immune libraries (from non-immunized sources), and synthetic libraries (constructed through targeted sequence design and CDR randomization). The session explores how library diversity is generated—through methods such as PCR amplification of VHH genes or synthetic variation—and how it influences library quality and downstream success. Common library sizes are discussed, as well as how different display platforms (e.g. phage, yeast, ribosome) are used to present libraries to antigens, with an emphasis on phage display.</div>
           <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
         </div>
 
-        <div class="contribution-card">
-          <div class="contrib-title">Fundamentals of Nanobodies</div>
-          <div class="contrib-speaker">👤 Speaker TBA</div>
-          <div class="contrib-time">🕒 Wed 23/09, 14:00</div>
-          <div class="contrib-type">Lecture & Hands-on</div>
-          <div class="contrib-abstract" data-i18n="prog_desc_1">Core principles of VHH library construction and display. Comparison of immune, naïve and synthetic formats.</div>
-          <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
-        </div>
-
-        <div class="contribution-card">
+        <div id="talk-klara" class="contribution-card">
           <div class="contrib-title">Nanobody <i>in silico</i> Screening from Pre-Immune Libraries</div>
           <div class="contrib-speaker">👤 Dr. Klara Kropivsek (University of Nova Gorica)</div>
           <div class="contrib-time">🕒 Wed 23/09, 11:00</div>
-          <div class="contrib-type">Lecture & Hands-on</div>
-          <div class="contrib-abstract">Virtual screening and docking-based identification of VHH candidates directly from NGS-sequenced naive repertoires.</div>
+          <div class="contrib-type">Lecture & Case Studies</div>
+          <div class="contrib-abstract">Recent advances in high-throughput sequencing and structure prediction have enabled “virtual panning” of naïve nanobody (VHH) repertoires. This session reviews the core modules of computational nanobody discovery: repertoire profiling via MiXCR and clonotype clustering, homology modeling with NanobodyBuilder2 and ColabFold/Boltz-2, and docking benchmarking of published VHH–antigen complexes using ZDock and Boltz-2, scored by different scoring strategies. We’ll showcase case studies from ongoing work—including clonotype analysis of a naïve llama library and redocking of SAbDab-derived VHH–antigen pairs to assess predictive performance.</div>
           <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
         </div>
 
-        <div class="contribution-card">
-          <div class="contrib-title">Nanobody Panning Against a Target Antigen</div>
-          <div class="contrib-speaker">👤 Dr. Claudia d'Ercole (University of Nova Gorica)</div>
-          <div class="contrib-time">🕒 Wed 23/09, 15:30</div>
-          <div class="contrib-type">Lecture & Hands-on</div>
-          <div class="contrib-abstract">Selection techniques for recovering antigen-specific VHHs via phage-display panning rounds.</div>
-          <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
-        </div>
-
-        <div class="contribution-card">
+        <div id="talk-marco" class="contribution-card">
           <div class="contrib-title">Nanobody de novo design with AI</div>
           <div class="contrib-speaker">👤 Dr. Marco Orlando (University of Nova Gorica)</div>
           <div class="contrib-time">🕒 Wed 23/09, 13:30</div>
           <div class="contrib-type">Lecture & Hands-on</div>
-          <div class="contrib-abstract">State-of-the-art AI-driven strategies for proposing novel CDR variants with enhanced stability and affinity.</div>
+          <div class="contrib-abstract">Nanobodies (Nbs) from pre-immune libraries could exhibit deficiencies in biophysical properties, such as stability and affinity, necessitating an optimization step. This can be achieved either in vitro through controlled mutagenesis followed by another round of panning or in silico by proposing variants. This approach, which involves screening multiple single-site variants, may demand extensive experimental efforts. Additionally, negative epistatic effects can occur when combining multiple potentially beneficial single-site variants, where increased affinity variants may negatively impact stability. Emerging data-driven Machine Learning (ML) approaches are promising in the field of de novo Nb design or redesign, as they can learn multidimensional constraints between protein structure, stability and binding capacity, while explicitly designing protein and non-protein biomolecules at atomic-level resolution. Anyway, a small amount of data is available for training Nbs-specific methods and available models have been tested and validated mainly in the design of mini-binders of known protein biomarkers. In this workshop session an introduction to these methods and their expected accuracy on published data will be provided, with the possibility to try a couple of them through a Jupiter Notebook run over the internet browser in a simple case study. In the second part there will be a perspective and discussion on adapting such de novo protein design systems for nanobody CDRs (re)design tasks.</div>
           <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
         </div>
 
-        <div class="contribution-card">
-          <div class="contrib-title">Structural and Imaging Applications</div>
-          <div class="contrib-speaker">👤 Speaker TBA</div>
-          <div class="contrib-time">🕒 Fri 25/09, 09:00</div>
-          <div class="contrib-type">Lecture</div>
-          <div class="contrib-abstract" data-i18n="prog_desc_5">Role of nanobodies in structural biology as crystallization chaperones and cryo-EM stabilizers.</div>
-          <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
-        </div>
-
-        <div class="contribution-card">
-          <div class="contrib-title">Present Your Research</div>
-          <div class="contrib-speaker">👤 Selected Attendees</div>
-          <div class="contrib-time">🕒 Daily, 17:00</div>
-          <div class="contrib-type">Short Talks</div>
-          <div class="contrib-abstract" data-i18n="prog_desc_6">Attendees present their PhD projects or novel methodological concepts followed by peer discussion.</div>
+        <div id="talk-claudia" class="contribution-card">
+          <div class="contrib-title">Nanobody Panning Against a Target Antigen</div>
+          <div class="contrib-speaker">👤 Dr. Claudia d'Ercole (University of Nova Gorica)</div>
+          <div class="contrib-time">🕒 Wed 23/09, 15:30</div>
+          <div class="contrib-type">Practical Briefing</div>
+          <div class="contrib-abstract">In the practical part of the workshop, participants will gain hands-on experience with phage display-based nanobody panning. Working in small groups, they will perform a selection round using a nanobody (VHH) library and a chosen model antigen immobilized on a solid surface. The goal is to enrich for nanobody clones that specifically bind the target. The workflow includes incubation of the library with the antigen, washing to remove non-binders, elution of bound phages, and infection of E. coli for amplification. If time allows, participants will also explore panning on live cells to simulate more complex and physiologically relevant selection environments. Takeaway: Participants will understand and carry out the core steps of a nanobody selection campaign, gaining insight into the practical considerations and challenges of identifying specific binders from a large pre-immune or synthetic library.</div>
           <div class="contrib-material-status" style="margin-top:10px; font-size:12px; color:var(--accent-rose);">🔒 Material locked (Registration required)</div>
         </div>
       </section>
