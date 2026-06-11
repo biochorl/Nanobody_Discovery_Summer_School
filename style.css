@@ -1059,10 +1059,10 @@ blockquote {
 
 /* ===== Logos & Support Sections ===== */
 .header-univ-logo {
-  height: 28px;
+  height: 20px;
   width: auto;
   border-radius: 50%;
-  border: 1.5px solid var(--border-glass);
+  border: 1px solid var(--border-glass);
   background: rgba(255, 255, 255, 0.9);
   padding: 1px;
 }
@@ -1070,46 +1070,47 @@ blockquote {
 .support-logos-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 20px;
-  margin-top: 24px;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .support-logo-card {
   background: var(--bg-glass);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-sm);
-  padding: 20px 16px 16px;
+  padding: 12px 10px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 200px;
+  width: 140px;
   text-align: center;
   transition: all var(--transition);
 }
 
 .support-logo-card:hover {
   border-color: var(--border-glow);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(6, 182, 212, 0.1);
 }
 
 .support-logo {
-  height: 75px;
+  height: 32px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .support-logo.horizontal {
-  height: 55px;
-  margin-bottom: 36px; /* Balance horizontal/vertical proportions visually */
+  height: 22px;
+  margin-bottom: 18px; /* Balance proportions with circular logo */
 }
 
 .support-logo-text {
-  font-size: 12.5px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-muted);
 }
+
 
