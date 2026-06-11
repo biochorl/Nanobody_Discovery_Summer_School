@@ -45,6 +45,7 @@ const translations = {
     "contrib_h2": "Programme Contributions",
     
     "reg_h2": "Registration",
+    "reg_info": "After registration, you will receive instructions on how to pay the fee and submit an abstract.",
     "reg_login_req": "Account required to register",
     "reg_login_desc": "You must be logged in to register for this event.",
     "btn_login": "Login to Register",
@@ -109,6 +110,7 @@ const translations = {
     "contrib_h2": "Programme Contributions",
     
     "reg_h2": "Registrazione",
+    "reg_info": "Dopo la registrazione, riceverai le istruzioni su come pagare la quota e inviare l'abstract.",
     "reg_login_req": "Account richiesto per iscriversi",
     "reg_login_desc": "Per iscriversi a questo evento è necessario aver effettuato il login.",
     "btn_login": "Accedi per Registrarti",
@@ -173,6 +175,7 @@ const translations = {
     "contrib_h2": "Prispevki programa",
     
     "reg_h2": "Registracija",
+    "reg_info": "Po registraciji boste prejeli navodila za plačilo prijavnine in oddajo povzetka.",
     "reg_login_req": "Za prijavo je potreben račun",
     "reg_login_desc": "Za prijavo na ta dogodek morate biti prijavljeni v sistem.",
     "btn_login": "Prijavite se za registracijo",
@@ -237,6 +240,7 @@ const translations = {
     "contrib_h2": "Contributions",
     
     "reg_h2": "Inscription",
+    "reg_info": "Après l'inscription, vous recevrez des instructions sur la façon de payer les frais et de soumettre un résumé.",
     "reg_login_req": "Compte requis",
     "reg_login_desc": "Vous devez être connecté pour vous inscrire.",
     "btn_login": "Connectez-vous pour vous inscrire",
@@ -298,6 +302,7 @@ const translations = {
     "cal_h2": "Horario",
     "contrib_h2": "Contribuciones",
     "reg_h2": "Registro",
+    "reg_info": "Después de registrarse, recibirá instrucciones sobre cómo pagar la tarifa y enviar un resumen.",
     "reg_login_req": "Se requiere cuenta para registrarse",
     "reg_login_desc": "Debes iniciar sesión para inscribirte en este evento.",
     "btn_login": "Inicia sesión para registrarte",
@@ -357,6 +362,7 @@ const translations = {
     "cal_h2": "Zeitplan",
     "contrib_h2": "Beiträge",
     "reg_h2": "Registrierung",
+    "reg_info": "Nach der Registrierung erhalten Sie Anweisungen zur Zahlung der Gebühr und zur Einreichung eines Abstracts.",
     "reg_login_req": "Konto erforderlich",
     "reg_login_desc": "Sie müssen eingeloggt sein, um sich für diese Veranstaltung zu registrieren.",
     "btn_login": "Anmelden zur Registrierung",
