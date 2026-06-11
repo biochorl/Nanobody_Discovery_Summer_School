@@ -1059,7 +1059,7 @@ blockquote {
 
 /* ===== Logos & Support Sections ===== */
 .header-univ-logo {
-  height: 20px;
+  height: 24px;
   width: auto;
   border-radius: 50%;
   border: 1px solid var(--border-glass);
