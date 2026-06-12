@@ -45,7 +45,7 @@ const translations = {
     "contrib_h2": "Programme Contributions",
     
     "reg_h2": "Registration",
-    "reg_info": "After registration, you will receive instructions on how to pay the fee and submit an abstract.",
+    "reg_info": "After registration, you will receive instructions on how to submit an abstract.",
     "reg_cancel_info": "Please get in contact for any need of info and indications about how to reach the campus, even prior to proceed with registration. The registration can be cancelled with 100% refund if done by 1st September 2026. No refund is available for later cancellation.",
     "reg_login_req": "Account required to register",
     "reg_login_desc": "You must be logged in to register for this event.",
@@ -111,7 +111,7 @@ const translations = {
     "contrib_h2": "Programme Contributions",
     
     "reg_h2": "Registrazione",
-    "reg_info": "Dopo la registrazione, riceverai le istruzioni su come pagare la quota e inviare l'abstract.",
+    "reg_info": "Dopo la registrazione, riceverai le istruzioni su come inviare l'abstract.",
     "reg_cancel_info": "Non esitare a metterti in contatto per qualsiasi richiesta di informazioni e indicazioni su come raggiungere il campus, anche prima di procedere con la registrazione. La registrazione può essere annullata con un rimborso del 100% se effettuata entro il 1° settembre 2026. Non è disponibile alcun rimborso per cancellazioni successive.",
     "reg_login_req": "Account richiesto per iscriversi",
     "reg_login_desc": "Per iscriversi a questo evento è necessario aver effettuato il login.",
@@ -177,7 +177,7 @@ const translations = {
     "contrib_h2": "Prispevki programa",
     
     "reg_h2": "Registracija",
-    "reg_info": "Po registraciji boste prejeli navodila za plačilo prijavnine in oddajo povzetka.",
+    "reg_info": "Po registraciji boste prejeli navodila za oddajo povzetka.",
     "reg_cancel_info": "Za vsa vprašanja in informacije ter navodila o tem, kako priti do kampusa, se obrnite na nas, tudi pred registracijo. Prijavo lahko prekličete s 100-odstotnim vračilom denarja do 1. septembra 2026. Za kasnejše preklicno vračilo denarja ni na voljo.",
     "reg_login_req": "Za prijavo je potreben račun",
     "reg_login_desc": "Za prijavo na ta dogodek morate biti prijavljeni v sistem.",
@@ -243,7 +243,7 @@ const translations = {
     "contrib_h2": "Contributions",
     
     "reg_h2": "Inscription",
-    "reg_info": "Après l'inscription, vous recevrez des instructions sur la façon de payer les frais et de soumettre un résumé.",
+    "reg_info": "Après l'inscription, vous recevrez des instructions sur la façon de soumettre un résumé.",
     "reg_cancel_info": "N'hésitez pas à nous contacter pour toute demande d'information et indications sur la façon de rejoindre le campus, même avant de procéder à l'inscription. L'inscription peut être annulée avec un remboursement à 100 % si elle est effectuée avant le 1er septembre 2026. Aucun remboursement n'est possible pour une annulation ultérieure.",
     "reg_login_req": "Compte requis",
     "reg_login_desc": "Vous devez être connecté pour vous inscrire.",
@@ -306,7 +306,7 @@ const translations = {
     "cal_h2": "Horario",
     "contrib_h2": "Contribuciones",
     "reg_h2": "Registro",
-    "reg_info": "Después de registrarse, recibirá instrucciones sobre cómo pagar la tarifa y enviar un resumen.",
+    "reg_info": "Después de registrarse, recibirá instrucciones sobre cómo enviar un resumen.",
     "reg_cancel_info": "No dude en ponerse en contacto con nosotros para cualquier información o indicaciones sobre cómo llegar al campus, incluso antes de proceder con el registro. El registro se puede cancelar con el 100 % de reembolso si se realiza antes del 1 de septiembre de 2026. No habrá reembolso para cancelaciones posteriores.",
     "reg_login_req": "Se requiere cuenta para registrarse",
     "reg_login_desc": "Debes iniciar sesión para inscribirte en este evento.",
@@ -367,7 +367,7 @@ const translations = {
     "cal_h2": "Zeitplan",
     "contrib_h2": "Beiträge",
     "reg_h2": "Registrierung",
-    "reg_info": "Nach der Registrierung erhalten Sie Anweisungen zur Zahlung der Gebühr und zur Einreichung eines Abstracts.",
+    "reg_info": "Nach der Registrierung erhalten Sie Anweisungen zur Einreichung eines Abstracts.",
     "reg_cancel_info": "Bitte setzen Sie sich für alle Informationswünsche und Hinweise zur Anreise zum Campus mit uns in Verbindung, auch vor der Registrierung. Die Registrierung kann bei einer Stornierung bis zum 1. September 2026 zu 100 % erstattet werden. Bei einer späteren Stornierung ist keine Rückerstattung möglich.",
     "reg_login_req": "Konto erforderlich",
     "reg_login_desc": "Sie müssen eingeloggt sein, um sich für diese Veranstaltung zu registrieren.",
