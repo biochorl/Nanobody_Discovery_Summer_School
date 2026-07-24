@@ -1076,8 +1076,12 @@ blockquote {
   margin-bottom: 14px;
 }
 
+.header-sponsors-row .header-univ-logo {
+  height: 62px; /* 48px + 30% */
+}
+
 .header-sponsors-row .header-univ-logo.horizontal {
-  height: 32px;
+  height: 42px; /* 32px + 30% */
   border-radius: var(--radius-sm);
   padding: 3px 8px;
 }
