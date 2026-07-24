@@ -1067,6 +1067,21 @@ blockquote {
   padding: 1px;
 }
 
+.header-sponsors-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.header-sponsors-row .header-univ-logo.horizontal {
+  height: 32px;
+  border-radius: var(--radius-sm);
+  padding: 3px 8px;
+}
+
 .support-logos-container {
   display: flex;
   flex-wrap: wrap;
