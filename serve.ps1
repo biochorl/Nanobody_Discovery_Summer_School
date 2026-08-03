@@ -27,10 +27,11 @@ try {
             [byte[]]$buffer = [System.IO.File]::ReadAllBytes($file)
             $response.ContentLength64 = $buffer.Length
             $response.OutputStream.Write($buffer, 0, $buffer.Length)
+            $response.OutputStream.Close()
         } else {
             $response.StatusCode = 404
+            $response.Close()
         }
-        $response.Close()
     }
 } finally {
     $listener.Stop()

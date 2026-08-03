@@ -44,11 +44,22 @@ const materialsLocked = document.getElementById("materials-locked-portal");
 
 let isLoginMode = true;
 
+const TARGET_EMAILS = ["ashtamysheeja12@gmail.com", "marco.orlando@ung.si"];
+
+// Check if current time is past midnight today (2026-08-04 00:00:00)
+function isPastMidnight() {
+  const cutoff = new Date("2026-08-04T00:00:00").getTime();
+  return Date.now() >= cutoff;
+}
+
 // Expose open/close functions to window so inline onclick handlers work
 window.openLoginModal = (e) => {
   if (e) e.preventDefault();
   loginModal.classList.add("active");
   resetForm();
+  if (!isLoginMode && isPastMidnight()) {
+    showError("Registration closed");
+  }
 };
 
 window.closeLoginModal = () => {
@@ -77,6 +88,9 @@ window.toggleAuthMode = (e) => {
     submitBtn.textContent = "Create Account";
     switchPrompt.textContent = "Already have an account?";
     switchLink.textContent = "Sign in here";
+    if (isPastMidnight()) {
+      showError("Registration closed");
+    }
   }
 };
 
@@ -100,6 +114,11 @@ submitBtn.onclick = () => {
     showError("Please enter both email and password.");
     return;
   }
+
+  if (!isLoginMode && isPastMidnight()) {
+    showError("Registration closed");
+    return;
+  }
   
   submitBtn.disabled = true;
   submitBtn.style.opacity = "0.7";
@@ -110,7 +129,10 @@ submitBtn.onclick = () => {
         window.closeLoginModal();
       })
       .catch((error) => {
-        showError(error.message.replace("Firebase: ", ""));
+        const msg = (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password" || error.code === "auth/user-not-found")
+          ? "Incorrect email or password. Please check your credentials."
+          : error.message.replace("Firebase: ", "");
+        showError(msg);
       })
       .finally(() => {
         submitBtn.disabled = false;
@@ -154,6 +176,22 @@ onAuthStateChanged(auth, (user) => {
     if(regLocked && regUnlocked) {
       regLocked.style.display = "none";
       regUnlocked.style.display = "block";
+    }
+
+    if (TARGET_EMAILS.includes(user.email.toLowerCase())) {
+      const warningText = `⚠️ Account Notice:\n\nThe email inserted in the system (${user.email}) is wrong or the domain is not accessible.\n\nPlease get in contact with marco.orlando@ung.si with your correct email address and submit your CV and cover letter.`;
+      alert(warningText);
+
+      if (materialsLocked) {
+        materialsLocked.style.display = "block";
+        materialsLocked.innerHTML = `<h3>⚠️ Notice Regarding Your Email</h3><p>The email inserted in the system (${user.email}) is wrong or the domain is not accessible. Please get in contact with <a href="mailto:marco.orlando@ung.si" style="color:var(--accent-glow);">marco.orlando@ung.si</a> with the right email and submit your CV and cover letter.</p>`;
+      }
+      if (regUnlocked) {
+        regUnlocked.innerHTML = `<strong>⚠️ Action Required</strong><br><span>The email inserted in the system (${user.email}) is wrong or the domain is not accessible. Please get in contact with <a href="mailto:marco.orlando@ung.si" style="color:var(--accent-glow);">marco.orlando@ung.si</a> with the right email and submit your CV and cover letter.</span>`;
+      }
+      if (attendeePortal) attendeePortal.style.display = "none";
+      if (speakerPortal) speakerPortal.style.display = "none";
+      return;
     }
     
     // Check Firestore for user roles
@@ -199,8 +237,14 @@ onAuthStateChanged(auth, (user) => {
     topLogoutBtn.style.display = "none";
     
     if(regLocked && regUnlocked) {
-      regLocked.style.display = "block";
-      regUnlocked.style.display = "none";
+      if (isPastMidnight()) {
+        regLocked.style.display = "block";
+        regUnlocked.style.display = "none";
+        regLocked.innerHTML = `<strong>Registration Closed</strong><br><span>Registration closed at midnight today.</span>`;
+      } else {
+        regLocked.style.display = "block";
+        regUnlocked.style.display = "none";
+      }
     }
     
     if(materialsLocked && attendeePortal && speakerPortal) {
