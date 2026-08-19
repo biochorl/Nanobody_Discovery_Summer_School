@@ -2,7 +2,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebas
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-storage.js";
+// Note: this project intentionally does NOT use Firebase Storage — as of late 2024,
+// new Cloud Storage for Firebase buckets require the paid Blaze plan. Photos and
+// confirmation letters are instead stored as compact base64 text directly in
+// Firestore documents, which stays on the free Spark plan (subject to Firestore's
+// 1 MiB per-document limit — see the size caps below).
 
 // Firebase configuration provided by the user
 // (API key is split to prevent false-positive GitHub Secret Scanner alerts)
@@ -21,7 +25,6 @@ const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 // DOM Elements — login modal
 const loginModal = document.getElementById("login-modal");
@@ -112,23 +115,19 @@ const TRIP_LABELS = {
 };
 
 let isLoginMode = true;
-let pendingPhotoFile = null;
 let isAdmin = false;
 let currentSubscriberUid = null; // whichever subscriber the organizer is currently viewing
-let pendingLetterFile = null;
+let pendingLetterDataUrl = null;
+let pendingLetterFileName = null;
 
-// Every confirmation letter lives at this fixed, deterministic path — one PDF per user,
-// keyed off their UID (not a user-supplied filename), so lookups don't need any extra
-// Firestore field and a re-upload simply replaces the previous file.
-// Safety note: `uid` here is always either auth.currentUser.uid (the signed-in user's
-// own ID) or a Firestore document ID pulled from the users collection (see
-// loadSubscribersList) — never free text a caller can type. Firestore document IDs
-// cannot contain "/", so this can't be used to escape the confirmation-letters/{uid}/
-// folder even in principle.
-const MAX_LETTER_BYTES = 10 * 1024 * 1024; // 10 MB
-function letterStoragePath(uid) {
-  return `confirmation-letters/${uid}/confirmation-letter.pdf`;
-}
+// Confirmation letters live in their own Firestore collection — one document per user,
+// keyed by their UID, separate from the `users` collection so a large PDF never eats
+// into the budget of the profile document. `uid` here is always either
+// auth.currentUser.uid (the signed-in user's own ID) or a Firestore document ID pulled
+// from the users collection (see loadSubscribersList) — never free text a caller can type.
+// Raw file size cap is kept well under Firestore's 1 MiB per-document limit once
+// base64-encoded (~37% larger than the original file).
+const MAX_LETTER_BYTES = 650 * 1024; // 650 KB raw → ~890 KB encoded, leaves headroom
 
 // Check if current time is past midnight today (2026-08-04 00:00:00)
 function isPastMidnight() {
@@ -292,7 +291,6 @@ function showAccountStatus(msg, isError) {
 }
 
 function resetAccountForm() {
-  pendingPhotoFile = null;
   if (accountFullName) accountFullName.value = "";
   if (accountPosition) accountPosition.value = "";
   if (accountInstitution) accountInstitution.value = "";
@@ -318,7 +316,8 @@ function resetAccountForm() {
   // data from the DOM, not just hide it, so nothing lingers after logout.
   isAdmin = false;
   currentSubscriberUid = null;
-  pendingLetterFile = null;
+  pendingLetterDataUrl = null;
+  pendingLetterFileName = null;
   if (navSubscribersItem) navSubscribersItem.style.display = "none";
   if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = "none";
   if (subscriberDetailView) subscriberDetailView.style.display = "none";
@@ -341,15 +340,48 @@ function resetAccountForm() {
   }
 }
 
-// Preview the chosen photo immediately, upload happens on Save.
-// Client-side checks are a UX convenience only — the real enforcement
-// (file type, size, and "owner can only write their own folder") must
-// live in the Firebase Storage security rules, not in this script.
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
+// Photos are stored as base64 text inside the user's Firestore document (no Firebase
+// Storage — see the note at the top of this file), so every photo is resized/compressed
+// client-side into a small JPEG before it's ever saved. accountPhotoPreview.src *is* the
+// value that gets written on Save — there's no separate upload step or pending file.
+// Client-side checks (type, dimensions, output size) are a UX convenience only; the real
+// enforcement is the Firestore security rule's size cap on the photoDataUrl field.
+const MAX_PHOTO_INPUT_BYTES = 15 * 1024 * 1024; // reject absurdly large source files outright
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const PHOTO_MAX_DIMENSION = 420; // px, longest edge after resize
+const PHOTO_JPEG_QUALITY = 0.82;
+const MAX_PHOTO_DATA_URL_LENGTH = 220000; // ~165 KB encoded, keeps users/{uid} well under 1 MiB
+
+function resizeImageToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > height && width > PHOTO_MAX_DIMENSION) {
+        height = Math.round(height * (PHOTO_MAX_DIMENSION / width));
+        width = PHOTO_MAX_DIMENSION;
+      } else if (height > PHOTO_MAX_DIMENSION) {
+        width = Math.round(width * (PHOTO_MAX_DIMENSION / height));
+        height = PHOTO_MAX_DIMENSION;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(objectUrl);
+      resolve(canvas.toDataURL("image/jpeg", PHOTO_JPEG_QUALITY));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Could not read that image"));
+    };
+    img.src = objectUrl;
+  });
+}
 
 if (accountPhotoInput) {
-  accountPhotoInput.onchange = () => {
+  accountPhotoInput.onchange = async () => {
     const file = accountPhotoInput.files && accountPhotoInput.files[0];
     if (!file) return;
 
@@ -358,23 +390,30 @@ if (accountPhotoInput) {
       accountPhotoInput.value = "";
       return;
     }
-    if (file.size > MAX_PHOTO_BYTES) {
-      showAccountStatus("That image is too large — please choose one under 5 MB.", true);
+    if (file.size > MAX_PHOTO_INPUT_BYTES) {
+      showAccountStatus("That image is too large — please choose one under 15 MB.", true);
       accountPhotoInput.value = "";
       return;
     }
 
-    pendingPhotoFile = file;
     if (accountSaveStatus) accountSaveStatus.style.display = "none";
-    const reader = new FileReader();
-    reader.onload = (e) => {
+    try {
+      const dataUrl = await resizeImageToDataUrl(file);
+      if (dataUrl.length > MAX_PHOTO_DATA_URL_LENGTH) {
+        showAccountStatus("This photo is too complex to store even after compressing — please try a simpler image.", true);
+        accountPhotoInput.value = "";
+        return;
+      }
       if (accountPhotoPreview) {
-        accountPhotoPreview.src = e.target.result;
+        accountPhotoPreview.src = dataUrl;
         accountPhotoPreview.style.display = "block";
       }
       if (accountPhotoPlaceholder) accountPhotoPlaceholder.style.display = "none";
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Failed to process photo:", error);
+      showAccountStatus("Could not process that image — please try another file.", true);
+      accountPhotoInput.value = "";
+    }
   };
 }
 
@@ -386,25 +425,28 @@ if (topEmailDisplay) {
   };
 }
 
-// Look up the signed-in user's own confirmation letter. Read access is scoped to the
-// caller's own UID (or an organizer) by the Storage security rules — this never accepts
-// a UID argument from anywhere but auth.currentUser, so it can only ever fetch your own.
+// Look up the signed-in user's own confirmation letter, stored as a Firestore document
+// at letters/{uid}. Read access is scoped to the caller's own UID (or an organizer) by
+// the Firestore security rule — this never accepts a UID argument from anywhere but
+// auth.currentUser, so it can only ever fetch your own.
 function loadConfirmationLetter(user) {
   if (!accountLetterStatus || !accountLetterDownload) return;
   accountLetterStatus.textContent = "Checking…";
   accountLetterDownload.style.display = "none";
 
-  getDownloadURL(ref(storage, letterStoragePath(user.uid))).then((url) => {
-    accountLetterStatus.textContent = "Your confirmation letter is ready.";
-    accountLetterDownload.href = url;
-    accountLetterDownload.style.display = "inline-block";
-  }).catch((error) => {
-    if (error.code === "storage/object-not-found") {
-      accountLetterStatus.textContent = "Not issued yet — the organisers will upload this once your registration is confirmed.";
+  getDoc(doc(db, "letters", user.uid)).then((snap) => {
+    if (snap.exists() && snap.data().pdfDataUrl) {
+      accountLetterStatus.textContent = "Your confirmation letter is ready.";
+      accountLetterDownload.href = snap.data().pdfDataUrl;
+      accountLetterDownload.download = snap.data().fileName || "confirmation-letter.pdf";
+      accountLetterDownload.style.display = "inline-block";
     } else {
-      console.error("Failed to check confirmation letter:", error);
-      accountLetterStatus.textContent = "Could not check your confirmation letter right now.";
+      accountLetterStatus.textContent = "Not issued yet — the organisers will upload this once your registration is confirmed.";
+      accountLetterDownload.style.display = "none";
     }
+  }).catch((error) => {
+    console.error("Failed to check confirmation letter:", error);
+    accountLetterStatus.textContent = "Could not check your confirmation letter right now.";
     accountLetterDownload.style.display = "none";
   });
 }
@@ -433,8 +475,8 @@ function loadAccountData(user) {
       accountTripRadios.forEach(r => { r.checked = (r.value === data.tripInterest); });
     }
     if (accountNotes && data.notes) accountNotes.value = data.notes;
-    if (data.photoURL && accountPhotoPreview) {
-      accountPhotoPreview.src = data.photoURL;
+    if (data.photoDataUrl && accountPhotoPreview) {
+      accountPhotoPreview.src = data.photoDataUrl;
       accountPhotoPreview.style.display = "block";
       if (accountPhotoPlaceholder) accountPhotoPlaceholder.style.display = "none";
     }
@@ -472,14 +514,10 @@ if (accountSaveBtn) {
     showAccountStatus("Saving…", false);
 
     try {
-      let photoURL = accountPhotoPreview && accountPhotoPreview.style.display !== "none" ? accountPhotoPreview.src : null;
-
-      if (pendingPhotoFile) {
-        const photoRef = ref(storage, `avatars/${user.uid}/${pendingPhotoFile.name}`);
-        await uploadBytes(photoRef, pendingPhotoFile);
-        photoURL = await getDownloadURL(photoRef);
-        pendingPhotoFile = null;
-      }
+      // accountPhotoPreview.src already holds the final resized/compressed base64 image
+      // (set either by picking a new photo, or by loadAccountData restoring the saved one)
+      // — no separate upload step, this is what gets written straight into Firestore.
+      const photoDataUrl = accountPhotoPreview && accountPhotoPreview.style.display !== "none" ? accountPhotoPreview.src : null;
 
       const profileData = {
         email: user.email || "",
@@ -503,8 +541,8 @@ if (accountSaveBtn) {
         notes: accountNotes ? accountNotes.value.trim() : "",
         updatedAt: new Date().toISOString()
       };
-      if (photoURL && !photoURL.startsWith("data:")) {
-        profileData.photoURL = photoURL;
+      if (photoDataUrl) {
+        profileData.photoDataUrl = photoDataUrl;
       }
 
       await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
@@ -583,8 +621,8 @@ function loadSubscribersList() {
       const avatar = document.createElement("img");
       avatar.className = "subscriber-row-avatar";
       avatar.alt = "";
-      if (data.photoURL) {
-        avatar.src = data.photoURL;
+      if (data.photoDataUrl) {
+        avatar.src = data.photoDataUrl;
       } else {
         avatar.style.display = "none";
       }
@@ -637,8 +675,8 @@ function viewSubscriberDetail(uid, data) {
     subsDetailUpdated.textContent = data.updatedAt ? `Last updated: ${new Date(data.updatedAt).toLocaleString()}` : "";
   }
 
-  if (data.photoURL && subsDetailPhoto) {
-    subsDetailPhoto.src = data.photoURL;
+  if (data.photoDataUrl && subsDetailPhoto) {
+    subsDetailPhoto.src = data.photoDataUrl;
     subsDetailPhoto.style.display = "block";
     if (subsDetailPhotoPlaceholder) subsDetailPhotoPlaceholder.style.display = "none";
   } else {
@@ -647,7 +685,8 @@ function viewSubscriberDetail(uid, data) {
   }
 
   currentSubscriberUid = uid;
-  pendingLetterFile = null;
+  pendingLetterDataUrl = null;
+  pendingLetterFileName = null;
   if (subsLetterInput) subsLetterInput.value = "";
   if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
   checkExistingLetter(uid);
@@ -658,32 +697,34 @@ function viewSubscriberDetail(uid, data) {
 
 // Shows whether a confirmation letter already exists for the subscriber currently being
 // viewed, and a link to view it. Read access here relies on the caller being an admin
-// (per the Storage rules) — this only ever reads, never writes.
+// (per the Firestore rules on the letters collection) — this only ever reads, never writes.
 function checkExistingLetter(uid) {
   if (!subsLetterStatus) return;
   subsLetterStatus.textContent = "Checking…";
   if (subsLetterCurrentLink) subsLetterCurrentLink.style.display = "none";
 
-  getDownloadURL(ref(storage, letterStoragePath(uid))).then((url) => {
-    subsLetterStatus.textContent = "A confirmation letter is already on file. Uploading a new one will replace it.";
-    if (subsLetterCurrentLink) {
-      subsLetterCurrentLink.href = url;
-      subsLetterCurrentLink.style.display = "inline-block";
+  getDoc(doc(db, "letters", uid)).then((snap) => {
+    if (snap.exists() && snap.data().pdfDataUrl) {
+      subsLetterStatus.textContent = "A confirmation letter is already on file. Uploading a new one will replace it.";
+      if (subsLetterCurrentLink) {
+        subsLetterCurrentLink.href = snap.data().pdfDataUrl;
+        subsLetterCurrentLink.download = snap.data().fileName || "confirmation-letter.pdf";
+        subsLetterCurrentLink.style.display = "inline-block";
+      }
+    } else {
+      subsLetterStatus.textContent = "No letter uploaded yet for this subscriber.";
     }
   }).catch((error) => {
-    if (error.code === "storage/object-not-found") {
-      subsLetterStatus.textContent = "No letter uploaded yet for this subscriber.";
-    } else {
-      console.error("Failed to check confirmation letter:", error);
-      subsLetterStatus.textContent = "Could not check for an existing letter.";
-    }
+    console.error("Failed to check confirmation letter:", error);
+    subsLetterStatus.textContent = "Could not check for an existing letter.";
   });
 }
 
 if (subsLetterInput) {
   subsLetterInput.onchange = () => {
     const file = subsLetterInput.files && subsLetterInput.files[0];
-    pendingLetterFile = null;
+    pendingLetterDataUrl = null;
+    pendingLetterFileName = null;
     if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
     if (!file) return;
 
@@ -693,20 +734,28 @@ if (subsLetterInput) {
       return;
     }
     if (file.size > MAX_LETTER_BYTES) {
-      subsLetterStatus.textContent = "That file is too large — please choose a PDF under 10 MB.";
+      subsLetterStatus.textContent = `That file is too large — please choose a PDF under ${Math.round(MAX_LETTER_BYTES / 1024)} KB (a simple, mostly-text letter works best; Firestore has no Storage bucket to offload big files to).`;
       subsLetterInput.value = "";
       return;
     }
 
-    pendingLetterFile = file;
-    subsLetterStatus.textContent = `Ready to upload: ${file.name}`;
-    if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = false;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingLetterDataUrl = e.target.result;
+      pendingLetterFileName = file.name;
+      subsLetterStatus.textContent = `Ready to upload: ${file.name}`;
+      if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = false;
+    };
+    reader.onerror = () => {
+      subsLetterStatus.textContent = "Could not read that file.";
+    };
+    reader.readAsDataURL(file);
   };
 }
 
 if (subsLetterUploadBtn) {
   subsLetterUploadBtn.onclick = async () => {
-    if (!pendingLetterFile || !currentSubscriberUid) return;
+    if (!pendingLetterDataUrl || !currentSubscriberUid) return;
     if (!isAdmin) {
       subsLetterStatus.textContent = "You do not have organizer access.";
       return;
@@ -716,9 +765,13 @@ if (subsLetterUploadBtn) {
     subsLetterStatus.textContent = "Uploading…";
 
     try {
-      const letterRef = ref(storage, letterStoragePath(currentSubscriberUid));
-      await uploadBytes(letterRef, pendingLetterFile, { contentType: "application/pdf" });
-      pendingLetterFile = null;
+      await setDoc(doc(db, "letters", currentSubscriberUid), {
+        pdfDataUrl: pendingLetterDataUrl,
+        fileName: pendingLetterFileName || "confirmation-letter.pdf",
+        uploadedAt: new Date().toISOString()
+      });
+      pendingLetterDataUrl = null;
+      pendingLetterFileName = null;
       if (subsLetterInput) subsLetterInput.value = "";
       checkExistingLetter(currentSubscriberUid);
       subsLetterStatus.textContent = "✅ Uploaded! The subscriber will see it in their My Account page.";
