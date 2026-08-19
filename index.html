@@ -7,7 +7,7 @@
   <title>Nanobody Discovery Summer School: Current & Future Methods</title>
   <meta name="description"
     content="Summer School on AI-based methods for de novo protein and nanobody binder design. 23-25 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
-  <link rel="stylesheet" href="style.css?v=22">
+  <link rel="stylesheet" href="style.css?v=23">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -527,6 +527,22 @@
             </div>
             <a id="account-letter-download" href="#" rel="noopener" class="register-btn" style="display:none;" data-i18n="acc_letter_download">⬇️ Download PDF</a>
           </div>
+
+          <div id="account-danger-zone" class="danger-zone">
+            <div class="danger-zone-title" data-i18n="acc_delete_h">⚠️ Delete my account</div>
+
+            <div id="account-delete-open">
+              <p class="danger-zone-text" data-i18n="acc_delete_desc">You can permanently delete your account and everything you've submitted (profile, invoice info, photo) until <strong>1 September 2026</strong>. This cannot be undone.</p>
+              <div class="auth-form-group" style="max-width: 320px;">
+                <label data-i18n="acc_delete_pw_label">Enter your password to confirm</label>
+                <input type="password" id="account-delete-password" placeholder="••••••••" autocomplete="current-password">
+              </div>
+              <button type="button" id="account-delete-btn" class="danger-btn" data-i18n="acc_delete_btn">Permanently delete my account</button>
+              <div id="account-delete-status" style="font-size: 13px; margin-top: 10px; display: none;"></div>
+            </div>
+
+            <p id="account-delete-closed" class="danger-zone-text" style="display:none;" data-i18n="acc_delete_closed">Self-service account deletion is no longer available online. Please contact the organisers directly if you'd like your account removed.</p>
+          </div>
         </div>
       </section>
 
@@ -761,7 +777,7 @@
 
   <script src="script.js?v=15"></script>
   <script src="lang.js?v=15"></script>
-  <script type="module" src="auth.js?v=21"></script>
+  <script type="module" src="auth.js?v=22"></script>
 </body>
 
 </html>
