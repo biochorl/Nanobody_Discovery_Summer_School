@@ -7,7 +7,7 @@
   <title>Nanobody Discovery Summer School: Current & Future Methods</title>
   <meta name="description"
     content="Summer School on AI-based methods for de novo protein and nanobody binder design. 23-25 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
-  <link rel="stylesheet" href="style.css?v=18">
+  <link rel="stylesheet" href="style.css?v=21">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -33,7 +33,7 @@
     </div>
     <div id="user-auth-status">
       <a href="#" id="open-login-btn" onclick="openLoginModal(event)">Login / Register</a>
-      <span id="user-email-display" style="display:none; margin-right:10px; font-weight:600;"></span>
+      <a href="#" id="user-email-display" data-target="account" style="display:none; margin-right:10px; font-weight:600;" title="Go to My Account"></a>
       <a href="#" id="logout-btn" style="display:none;" onclick="logoutUser(event)">Logout</a>
     </div>
   </div>
@@ -79,7 +79,8 @@
           <li><a href="#" class="nav-link active" data-target="overview" data-i18n="nav_overview">Overview</a></li>
           <li><a href="#" class="nav-link" data-target="timetable" data-i18n="nav_timetable">Timetable</a></li>
           <li><a href="#" class="nav-link" data-target="programme" data-i18n="nav_programme">Scientific Programme</a></li>
-          <li><a href="#" class="nav-link" data-target="registration" data-i18n="nav_reg">Registration</a></li>
+          <li><a href="#" class="nav-link" data-target="account" data-i18n="nav_account">My Account</a></li>
+          <li id="nav-subscribers-item" style="display:none;"><a href="#" class="nav-link" id="nav-subscribers-link" data-target="subscribers" data-i18n="nav_subscribers">🛡️ Subscribers (Organizer)</a></li>
           <li><a href="#" class="nav-link" data-target="social" data-i18n="nav_evening">Social Activities</a></li>
           <li><a href="#" class="nav-link" data-target="faqs" data-i18n="nav_faqs">FAQs</a></li>
           <li><a href="#" class="nav-link" data-target="about" data-i18n="nav_about">About Us</a></li>
@@ -400,27 +401,173 @@
 
 
 
-      <!-- Registration Section -->
-      <section id="registration" class="page-section">
-        <h3 data-i18n="reg_h2">Registration</h3>
-        <p data-i18n="reg_info" style="margin-bottom: 12px;">After registration, you will receive instructions on how to submit an abstract.</p>
-        <p data-i18n="reg_cancel_info" style="margin-bottom: 20px; font-size: 14px; opacity: 0.9;">Please get in contact for any need of info and indications about how to reach the campus, even prior to proceed with registration. The registration can be cancelled with 100% refund if done by 1st September 2026. No refund is available for later cancellation.</p>
+      <!-- My Account Section -->
+      <section id="account" class="page-section">
+        <h3 data-i18n="acc_h2">👤 My Account</h3>
+        <p style="margin-bottom: 20px; font-size: 14px; opacity: 0.9;" data-i18n="acc_intro">Manage your profile photo and personal information. This information helps the organisers prepare your registration, badge, and any dietary or accessibility needs.</p>
 
+        <div id="account-locked-state" class="reg-notice">
+          <strong data-i18n="acc_login_req">Account required</strong><br>
+          <span data-i18n="acc_login_desc">You must be logged in to view or edit your account.</span><br>
+          <a href="#" class="register-btn" data-i18n="btn_login" onclick="openLoginModal(event)">Login to Continue</a>
+        </div>
 
-        <div class="reg-notice">
-          <div class="reg-icon">ℹ</div>
-          <div id="registration-locked-state">
-            <strong data-i18n="reg_login_req">Account required to register</strong><br>
-            <span data-i18n="reg_login_desc">You must be logged in to register for this event.</span><br>
-            <a href="#" class="register-btn" data-i18n="btn_login" onclick="openLoginModal(event)">Login to Register</a>
+        <div id="account-unlocked-state" style="display:none;">
+          <div class="account-photo-row">
+            <img id="account-photo-preview" class="account-avatar" src="" alt="Profile photo" style="display:none;">
+            <div id="account-photo-placeholder" class="account-avatar account-avatar-placeholder">👤</div>
+            <div>
+              <label for="account-photo-input" class="register-btn" style="cursor:pointer; padding: 9px 20px; font-size: 13px;" data-i18n="acc_upload_photo">Upload Photo</label>
+              <input type="file" id="account-photo-input" accept="image/*" style="display:none;">
+              <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;" data-i18n="acc_photo_hint">JPG or PNG, square images look best.</div>
+            </div>
           </div>
-          <div id="registration-unlocked-state" style="display:none;">
-            <strong>You are securely logged in!</strong><br>
-            <span>You may now proceed to complete your Summer School registration. (Application form coming soon).</span><br>
-            <button class="register-btn" style="border:none; cursor:pointer;"
-              onclick="alert('The abstract submission and registration form will be added here next!')">Proceed to
-              Application</button>
+
+          <div class="auth-form-group" style="margin-top: 24px;">
+            <label data-i18n="acc_email">Email address</label>
+            <input type="email" id="account-email" disabled style="opacity: 0.7;">
           </div>
+
+          <div class="account-form-grid">
+            <div class="auth-form-group">
+              <label data-i18n="acc_full_name">Full name</label>
+              <input type="text" id="account-full-name" placeholder="e.g. Jane Doe" maxlength="120" autocomplete="name">
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_position">Position / Role</label>
+              <select id="account-position">
+                <option value="">Select…</option>
+                <option value="master">Master student</option>
+                <option value="phd">PhD student</option>
+                <option value="postdoc">Postdoc</option>
+                <option value="pi">PI / Faculty</option>
+                <option value="speaker">Speaker</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_institution">Institution / Affiliation</label>
+              <input type="text" id="account-institution" placeholder="e.g. University of Nova Gorica" maxlength="150" autocomplete="organization">
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_country">Country</label>
+              <input type="text" id="account-country" placeholder="e.g. Slovenia" maxlength="80" autocomplete="country-name">
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_phone">Phone number (optional)</label>
+              <input type="tel" id="account-phone" placeholder="e.g. +386 ..." maxlength="30" autocomplete="tel">
+            </div>
+          </div>
+
+          <div class="auth-form-group">
+            <label data-i18n="acc_dietary">Dietary restrictions / allergies (optional)</label>
+            <textarea id="account-dietary" rows="2" maxlength="500" placeholder="e.g. vegetarian, gluten-free, none"></textarea>
+          </div>
+
+          <div class="auth-form-group">
+            <label data-i18n="acc_bio">Short bio / research interests (optional)</label>
+            <textarea id="account-bio" rows="3" maxlength="800" placeholder="A couple of sentences about your research"></textarea>
+          </div>
+
+          <h4 class="account-subsection-title" data-i18n="acc_invoice_h">🧾 Invoice / billing information</h4>
+          <p class="account-subsection-hint" data-i18n="acc_invoice_hint">Needed to issue the invoice for the €70 registration fee. We only ask for a billing address — never for card or payment details.</p>
+
+          <div class="auth-form-group">
+            <label data-i18n="acc_invoice_name">Invoice name (person or institution) <span class="required-mark">*</span></label>
+            <input type="text" id="account-invoice-name" placeholder="e.g. Jane Doe or University of Nova Gorica" maxlength="150" autocomplete="name" required>
+          </div>
+
+          <div class="account-form-grid">
+            <div class="auth-form-group" style="grid-column: 1 / -1;">
+              <label data-i18n="acc_invoice_address">Billing address (street, number) <span class="required-mark">*</span></label>
+              <input type="text" id="account-invoice-address" placeholder="e.g. Vipavska cesta 13" maxlength="200" autocomplete="street-address" required>
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_invoice_city">City <span class="required-mark">*</span></label>
+              <input type="text" id="account-invoice-city" placeholder="e.g. Nova Gorica" maxlength="100" autocomplete="address-level2" required>
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_invoice_zip">Postal code <span class="required-mark">*</span></label>
+              <input type="text" id="account-invoice-zip" placeholder="e.g. 5000" maxlength="20" autocomplete="postal-code" required>
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_invoice_country">Billing country <span class="required-mark">*</span></label>
+              <input type="text" id="account-invoice-country" placeholder="e.g. Slovenia" maxlength="80" autocomplete="country-name" required>
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_invoice_vat">VAT / Tax ID (optional)</label>
+              <input type="text" id="account-invoice-vat" placeholder="e.g. SI12345678" maxlength="40" autocomplete="off">
+            </div>
+          </div>
+
+          <h4 class="account-subsection-title" data-i18n="acc_trip_h">⛰️ Friday afternoon mountain trip — 25 September</h4>
+          <p class="account-subsection-hint" data-i18n="acc_trip_hint">We're considering a short guided trip to a nearby mountain location on Friday afternoon, 25th September, subject to interest and weather. Would you like to join?</p>
+          <div class="trip-toggle-group" role="radiogroup" aria-label="Friday mountain trip interest">
+            <label class="trip-toggle"><input type="radio" name="account-trip-interest" id="account-trip-yes" value="yes"><span data-i18n="acc_trip_yes">🙋 Yes, I'm interested</span></label>
+            <label class="trip-toggle"><input type="radio" name="account-trip-interest" id="account-trip-maybe" value="maybe"><span data-i18n="acc_trip_maybe">🤔 Maybe</span></label>
+            <label class="trip-toggle"><input type="radio" name="account-trip-interest" id="account-trip-no" value="no"><span data-i18n="acc_trip_no">🙅 No, thanks</span></label>
+          </div>
+
+          <div class="auth-form-group" style="margin-top: 20px;">
+            <label data-i18n="acc_notes">Notes / special requests (optional)</label>
+            <textarea id="account-notes" rows="3" maxlength="800" placeholder="Anything else you'd like the organisers to know"></textarea>
+          </div>
+
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;" data-i18n="acc_privacy_note">🔒 This information is stored in your account and used only by the organisers for the Summer School.</p>
+
+          <div id="account-save-status" style="font-size: 13px; margin-bottom: 10px; display: none;"></div>
+
+          <button id="account-save-btn" class="register-btn" style="border:none; cursor:pointer;" data-i18n="acc_save">Save Changes</button>
+        </div>
+      </section>
+
+      <!-- Subscribers Section (Organizer-only, read-only) -->
+      <section id="subscribers" class="page-section">
+        <h3 data-i18n="subs_h2">🛡️ Subscribers</h3>
+        <div class="admin-badge" data-i18n="subs_badge">Organizer view — read-only. You can see what participants have entered, but cannot edit their information from here.</div>
+
+        <div id="subscribers-list-view">
+          <div id="subscribers-list" class="subscribers-list">
+            <p id="subscribers-loading" style="color: var(--text-muted); font-size: 14px;" data-i18n="subs_loading">Loading subscribers…</p>
+          </div>
+        </div>
+
+        <div id="subscriber-detail-view" style="display:none;">
+          <button type="button" id="subscriber-back-btn" class="register-btn" style="border:none; cursor:pointer; margin-bottom: 20px;" data-i18n="subs_back">← Back to list</button>
+
+          <div class="account-photo-row">
+            <img id="subs-detail-photo" class="account-avatar" src="" alt="Profile photo" style="display:none;">
+            <div id="subs-detail-photo-placeholder" class="account-avatar account-avatar-placeholder">👤</div>
+            <div>
+              <div id="subs-detail-name" style="font-size: 18px; font-weight: 700;"></div>
+              <div id="subs-detail-email" style="font-size: 13px; color: var(--text-muted);"></div>
+            </div>
+          </div>
+
+          <dl class="subscriber-readonly-grid">
+            <div><dt data-i18n="acc_position">Position / Role</dt><dd id="subs-detail-position">—</dd></div>
+            <div><dt data-i18n="acc_institution">Institution / Affiliation</dt><dd id="subs-detail-institution">—</dd></div>
+            <div><dt data-i18n="acc_country">Country</dt><dd id="subs-detail-country">—</dd></div>
+            <div><dt data-i18n="acc_phone">Phone number</dt><dd id="subs-detail-phone">—</dd></div>
+            <div><dt data-i18n="acc_dietary">Dietary restrictions / allergies</dt><dd id="subs-detail-dietary">—</dd></div>
+            <div><dt data-i18n="acc_trip_h">Friday mountain trip</dt><dd id="subs-detail-trip">—</dd></div>
+          </dl>
+
+          <dl class="subscriber-readonly-grid">
+            <div style="grid-column: 1 / -1;"><dt data-i18n="acc_invoice_h">Invoice / billing information</dt><dd id="subs-detail-invoice">—</dd></div>
+          </dl>
+
+          <div style="margin-top: 16px;">
+            <div style="font-size:13px; font-weight:600; color: var(--text-muted); margin-bottom: 6px;" data-i18n="acc_bio">Short bio / research interests</div>
+            <div id="subs-detail-bio">—</div>
+          </div>
+
+          <div style="margin-top: 16px;">
+            <div style="font-size:13px; font-weight:600; color: var(--text-muted); margin-bottom: 6px;" data-i18n="acc_notes">Notes / special requests</div>
+            <div id="subs-detail-notes">—</div>
+          </div>
+
+          <p id="subs-detail-updated" style="font-size: 12px; color: var(--text-muted); margin-top: 20px;"></p>
         </div>
       </section>
 
@@ -539,7 +686,8 @@
     <a href="#" class="mob-nav-link active" data-target="overview"><span class="nav-icon">🏠</span>Overview</a>
     <a href="#" class="mob-nav-link" data-target="timetable"><span class="nav-icon">📅</span>Schedule</a>
     <a href="#" class="mob-nav-link" data-target="programme"><span class="nav-icon">🔬</span>Programme</a>
-    <a href="#" class="mob-nav-link" data-target="registration"><span class="nav-icon">✍️</span>Register</a>
+    <a href="#" class="mob-nav-link" data-target="account"><span class="nav-icon">👤</span>Account</a>
+    <a href="#" class="mob-nav-link" id="mob-nav-subscribers-link" data-target="subscribers" style="display:none;"><span class="nav-icon">🛡️</span>Subscribers</a>
     <a href="#" class="mob-nav-link" data-target="faqs"><span class="nav-icon">❓</span>FAQs</a>
   </nav>
 
@@ -547,34 +695,49 @@
   <div id="login-modal" class="modal-overlay">
     <div class="modal-box">
       <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+
+      <div class="auth-modal-icon">🔐</div>
       <h2 id="modal-title">Sign In</h2>
+      <p class="auth-modal-subtitle" id="modal-subtitle">Access your Summer School account</p>
+
+      <div class="auth-mode-tabs">
+        <button type="button" id="auth-tab-signin" class="auth-mode-tab active" onclick="setAuthMode(true, event)">Sign In</button>
+        <button type="button" id="auth-tab-register" class="auth-mode-tab" onclick="setAuthMode(false, event)">Register</button>
+      </div>
 
       <div class="auth-form-group">
         <label>Email address</label>
-        <input type="email" id="auth-email" placeholder="you@university.edu" required>
+        <div class="auth-input-wrap">
+          <span class="auth-input-icon">✉️</span>
+          <input type="email" id="auth-email" placeholder="you@university.edu" autocomplete="email" required>
+        </div>
       </div>
 
       <div class="auth-form-group">
         <label>Password</label>
-        <input type="password" id="auth-password" placeholder="••••••••" required>
+        <div class="auth-input-wrap">
+          <span class="auth-input-icon">🔒</span>
+          <input type="password" id="auth-password" placeholder="••••••••" autocomplete="current-password" required>
+          <button type="button" class="auth-toggle-pw" id="auth-toggle-pw" title="Show password" aria-label="Show password">👁</button>
+        </div>
       </div>
 
-      <div id="auth-error-msg" style="color: var(--accent-rose); font-size: 13px; margin-bottom: 10px; display: none;">
-      </div>
+      <div id="auth-error-msg" class="auth-error-box" style="display: none;"></div>
 
-      <button id="auth-submit-btn" class="register-btn"
-        style="width: 100%; text-align: center; margin-top: 5px; border:none; cursor:pointer;">Sign In</button>
+      <button id="auth-submit-btn" class="register-btn auth-submit-btn">Sign In</button>
 
       <p class="auth-switch-text">
         <span id="auth-switch-prompt">Don't have an account?</span>
         <a href="#" id="auth-switch-link" onclick="toggleAuthMode(event)">Register here</a>
       </p>
+
+      <p class="auth-modal-footnote">🔒 Your credentials are handled by Firebase Authentication over a secure connection.</p>
     </div>
   </div>
 
   <script src="script.js?v=15"></script>
   <script src="lang.js?v=15"></script>
-  <script type="module" src="auth.js?v=15"></script>
+  <script type="module" src="auth.js?v=18"></script>
 </body>
 
 </html>
