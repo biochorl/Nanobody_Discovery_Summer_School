@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 // Note: this project intentionally does NOT use Firebase Storage — as of late 2024,
 // new Cloud Storage for Firebase buckets require the paid Blaze plan. Photos and
 // confirmation letters are instead stored as compact base64 text directly in
@@ -73,6 +73,14 @@ const accountSaveStatus = document.getElementById("account-save-status");
 const accountLetterStatus = document.getElementById("account-letter-status");
 const accountLetterDownload = document.getElementById("account-letter-download");
 
+// DOM Elements — Delete my account (self-service, open until 1 September 2026)
+const accountDangerZone = document.getElementById("account-danger-zone");
+const accountDeleteOpen = document.getElementById("account-delete-open");
+const accountDeleteClosed = document.getElementById("account-delete-closed");
+const accountDeletePassword = document.getElementById("account-delete-password");
+const accountDeleteBtn = document.getElementById("account-delete-btn");
+const accountDeleteStatus = document.getElementById("account-delete-status");
+
 // DOM Elements — Subscribers panel (organizer-only)
 const navSubscribersItem = document.getElementById("nav-subscribers-item");
 const navSubscribersLink = document.getElementById("nav-subscribers-link");
@@ -133,6 +141,30 @@ const MAX_LETTER_BYTES = 650 * 1024; // 650 KB raw → ~890 KB encoded, leaves h
 function isPastMidnight() {
   const cutoff = new Date("2026-08-04T00:00:00").getTime();
   return Date.now() >= cutoff;
+}
+
+// Self-service account deletion is only offered up to (and including) 1 September 2026.
+function isPastAccountDeletionDeadline() {
+  const cutoff = new Date("2026-09-01T23:59:59").getTime();
+  return Date.now() > cutoff;
+}
+
+// The organizer never gets the self-delete option on their own account — deleting the
+// organizer's Auth user would strand the admins/{uid} document at a UID that can never
+// sign in again, permanently cutting off the Subscribers panel for everyone. Called both
+// right after login (deadline-only, isAdmin not resolved yet) and again once
+// checkAdminStatus resolves, so the final state is always correct regardless of which
+// async check finishes first.
+function updateDeleteZoneVisibility() {
+  if (!accountDangerZone) return;
+  if (isAdmin) {
+    accountDangerZone.style.display = "none";
+    return;
+  }
+  accountDangerZone.style.display = "block";
+  const deletionClosed = isPastAccountDeletionDeadline();
+  if (accountDeleteOpen) accountDeleteOpen.style.display = deletionClosed ? "none" : "block";
+  if (accountDeleteClosed) accountDeleteClosed.style.display = deletionClosed ? "block" : "none";
 }
 
 // Jump to a section of the single-page app (reuses the sidebar nav wiring in script.js)
@@ -311,6 +343,9 @@ function resetAccountForm() {
   if (accountSaveStatus) accountSaveStatus.style.display = "none";
   if (accountLetterStatus) accountLetterStatus.textContent = "";
   if (accountLetterDownload) { accountLetterDownload.style.display = "none"; accountLetterDownload.href = "#"; }
+  if (accountDeletePassword) accountDeletePassword.value = "";
+  if (accountDeleteStatus) { accountDeleteStatus.textContent = ""; accountDeleteStatus.style.display = "none"; }
+  if (accountDangerZone) accountDangerZone.style.display = "none";
 
   // Reset the organizer-only Subscribers panel too — clear any rendered participant
   // data from the DOM, not just hide it, so nothing lingers after logout.
@@ -454,6 +489,8 @@ function loadConfirmationLetter(user) {
 function loadAccountData(user) {
   if (accountEmailField) accountEmailField.value = user.email || "";
   loadConfirmationLetter(user);
+  updateDeleteZoneVisibility();
+
   const userDocRef = doc(db, "users", user.uid);
   getDoc(userDocRef).then((userDoc) => {
     if (!userDoc.exists()) return;
@@ -561,6 +598,73 @@ window.uploadMaterial = () => {
   alert("File selected! To actually host files securely, Firebase Storage configuration will be enabled next.");
 };
 
+// ===== Delete my account (self-service, open until 1 September 2026) =====
+//
+// Security: this always operates on auth.currentUser — there is no code path here
+// that accepts a UID, so a signed-in user can only ever delete their own account and
+// their own users/{uid} document, never anyone else's. Firebase requires a "recent"
+// sign-in before allowing account deletion (auth/requires-recent-login), which is why
+// this re-authenticates with the user's password immediately beforehand — that also
+// doubles as a safeguard against, e.g., an unattended logged-in browser being used to
+// delete the account without knowing the password.
+function showDeleteStatus(msg, isError) {
+  if (!accountDeleteStatus) return;
+  accountDeleteStatus.textContent = msg;
+  accountDeleteStatus.style.color = isError ? "var(--accent-rose)" : "var(--accent-glow)";
+  accountDeleteStatus.style.display = "block";
+}
+
+if (accountDeleteBtn) {
+  accountDeleteBtn.onclick = async () => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // Belt-and-suspenders: the organizer's own account should never be deletable from
+    // here, even in an unlikely race where the UI hasn't hidden this button yet.
+    if (isAdmin) {
+      showDeleteStatus("The organizer account cannot be deleted from here.", true);
+      return;
+    }
+
+    if (isPastAccountDeletionDeadline()) {
+      showDeleteStatus("The self-service deletion window has closed.", true);
+      return;
+    }
+
+    const password = accountDeletePassword ? accountDeletePassword.value : "";
+    if (!password) {
+      showDeleteStatus("Please enter your password to confirm.", true);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "This will permanently delete your account and everything you've submitted (profile, invoice info, photo). This cannot be undone. Continue?"
+    );
+    if (!confirmed) return;
+
+    accountDeleteBtn.disabled = true;
+    showDeleteStatus("Deleting…", false);
+
+    try {
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+      await deleteDoc(doc(db, "users", user.uid));
+      await deleteUser(user);
+      // deleteUser signs the user out automatically; onAuthStateChanged will reset the UI.
+      alert("Your account has been deleted.");
+      goToSection("overview");
+    } catch (error) {
+      const msg = (error.code === "auth/wrong-password" || error.code === "auth/invalid-credential")
+        ? "Incorrect password."
+        : error.code === "auth/too-many-requests"
+        ? "Too many attempts — please try again later."
+        : error.message.replace("Firebase: ", "");
+      showDeleteStatus(msg, true);
+      accountDeleteBtn.disabled = false;
+    }
+  };
+}
+
 // ===== Subscribers panel (organizer-only, strictly read-only) =====
 //
 // Security model:
@@ -588,10 +692,12 @@ function checkAdminStatus(user) {
     isAdmin = snap.exists();
     if (navSubscribersItem) navSubscribersItem.style.display = isAdmin ? "block" : "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = isAdmin ? "flex" : "none";
+    updateDeleteZoneVisibility();
   }).catch(() => {
     isAdmin = false;
     if (navSubscribersItem) navSubscribersItem.style.display = "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = "none";
+    updateDeleteZoneVisibility();
   });
 }
 
