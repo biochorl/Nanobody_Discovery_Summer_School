@@ -66,6 +66,10 @@ const accountNotes = document.getElementById("account-notes");
 const accountSaveBtn = document.getElementById("account-save-btn");
 const accountSaveStatus = document.getElementById("account-save-status");
 
+// DOM Elements — Confirmation letter (user-facing download)
+const accountLetterStatus = document.getElementById("account-letter-status");
+const accountLetterDownload = document.getElementById("account-letter-download");
+
 // DOM Elements — Subscribers panel (organizer-only)
 const navSubscribersItem = document.getElementById("nav-subscribers-item");
 const navSubscribersLink = document.getElementById("nav-subscribers-link");
@@ -88,6 +92,10 @@ const subsDetailInvoice = document.getElementById("subs-detail-invoice");
 const subsDetailBio = document.getElementById("subs-detail-bio");
 const subsDetailNotes = document.getElementById("subs-detail-notes");
 const subsDetailUpdated = document.getElementById("subs-detail-updated");
+const subsLetterStatus = document.getElementById("subs-letter-status");
+const subsLetterInput = document.getElementById("subs-letter-input");
+const subsLetterUploadBtn = document.getElementById("subs-letter-upload-btn");
+const subsLetterCurrentLink = document.getElementById("subs-letter-current-link");
 
 const POSITION_LABELS = {
   master: "Master student",
@@ -106,6 +114,21 @@ const TRIP_LABELS = {
 let isLoginMode = true;
 let pendingPhotoFile = null;
 let isAdmin = false;
+let currentSubscriberUid = null; // whichever subscriber the organizer is currently viewing
+let pendingLetterFile = null;
+
+// Every confirmation letter lives at this fixed, deterministic path — one PDF per user,
+// keyed off their UID (not a user-supplied filename), so lookups don't need any extra
+// Firestore field and a re-upload simply replaces the previous file.
+// Safety note: `uid` here is always either auth.currentUser.uid (the signed-in user's
+// own ID) or a Firestore document ID pulled from the users collection (see
+// loadSubscribersList) — never free text a caller can type. Firestore document IDs
+// cannot contain "/", so this can't be used to escape the confirmation-letters/{uid}/
+// folder even in principle.
+const MAX_LETTER_BYTES = 10 * 1024 * 1024; // 10 MB
+function letterStoragePath(uid) {
+  return `confirmation-letters/${uid}/confirmation-letter.pdf`;
+}
 
 // Check if current time is past midnight today (2026-08-04 00:00:00)
 function isPastMidnight() {
@@ -288,10 +311,14 @@ function resetAccountForm() {
   if (accountPhotoPreview) { accountPhotoPreview.style.display = "none"; accountPhotoPreview.src = ""; }
   if (accountPhotoPlaceholder) accountPhotoPlaceholder.style.display = "flex";
   if (accountSaveStatus) accountSaveStatus.style.display = "none";
+  if (accountLetterStatus) accountLetterStatus.textContent = "";
+  if (accountLetterDownload) { accountLetterDownload.style.display = "none"; accountLetterDownload.href = "#"; }
 
   // Reset the organizer-only Subscribers panel too — clear any rendered participant
   // data from the DOM, not just hide it, so nothing lingers after logout.
   isAdmin = false;
+  currentSubscriberUid = null;
+  pendingLetterFile = null;
   if (navSubscribersItem) navSubscribersItem.style.display = "none";
   if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = "none";
   if (subscriberDetailView) subscriberDetailView.style.display = "none";
@@ -299,9 +326,12 @@ function resetAccountForm() {
   if (subscribersList) subscribersList.innerHTML = "";
   [subsDetailName, subsDetailEmail, subsDetailPosition, subsDetailInstitution, subsDetailCountry,
    subsDetailPhone, subsDetailDietary, subsDetailTrip, subsDetailInvoice, subsDetailBio,
-   subsDetailNotes, subsDetailUpdated].forEach(el => { if (el) el.textContent = ""; });
+   subsDetailNotes, subsDetailUpdated, subsLetterStatus].forEach(el => { if (el) el.textContent = ""; });
   if (subsDetailPhoto) { subsDetailPhoto.style.display = "none"; subsDetailPhoto.src = ""; }
   if (subsDetailPhotoPlaceholder) subsDetailPhotoPlaceholder.style.display = "flex";
+  if (subsLetterInput) subsLetterInput.value = "";
+  if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
+  if (subsLetterCurrentLink) { subsLetterCurrentLink.style.display = "none"; subsLetterCurrentLink.href = "#"; }
 
   // If the organizer was on the Subscribers tab, don't leave them staring at an
   // empty admin-only page after logout — send them back to the public Overview tab.
@@ -356,8 +386,32 @@ if (topEmailDisplay) {
   };
 }
 
+// Look up the signed-in user's own confirmation letter. Read access is scoped to the
+// caller's own UID (or an organizer) by the Storage security rules — this never accepts
+// a UID argument from anywhere but auth.currentUser, so it can only ever fetch your own.
+function loadConfirmationLetter(user) {
+  if (!accountLetterStatus || !accountLetterDownload) return;
+  accountLetterStatus.textContent = "Checking…";
+  accountLetterDownload.style.display = "none";
+
+  getDownloadURL(ref(storage, letterStoragePath(user.uid))).then((url) => {
+    accountLetterStatus.textContent = "Your confirmation letter is ready.";
+    accountLetterDownload.href = url;
+    accountLetterDownload.style.display = "inline-block";
+  }).catch((error) => {
+    if (error.code === "storage/object-not-found") {
+      accountLetterStatus.textContent = "Not issued yet — the organisers will upload this once your registration is confirmed.";
+    } else {
+      console.error("Failed to check confirmation letter:", error);
+      accountLetterStatus.textContent = "Could not check your confirmation letter right now.";
+    }
+    accountLetterDownload.style.display = "none";
+  });
+}
+
 function loadAccountData(user) {
   if (accountEmailField) accountEmailField.value = user.email || "";
+  loadConfirmationLetter(user);
   const userDocRef = doc(db, "users", user.uid);
   getDoc(userDocRef).then((userDoc) => {
     if (!userDoc.exists()) return;
@@ -592,12 +646,95 @@ function viewSubscriberDetail(uid, data) {
     if (subsDetailPhotoPlaceholder) subsDetailPhotoPlaceholder.style.display = "flex";
   }
 
+  currentSubscriberUid = uid;
+  pendingLetterFile = null;
+  if (subsLetterInput) subsLetterInput.value = "";
+  if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
+  checkExistingLetter(uid);
+
   if (subscribersListView) subscribersListView.style.display = "none";
   if (subscriberDetailView) subscriberDetailView.style.display = "block";
 }
 
+// Shows whether a confirmation letter already exists for the subscriber currently being
+// viewed, and a link to view it. Read access here relies on the caller being an admin
+// (per the Storage rules) — this only ever reads, never writes.
+function checkExistingLetter(uid) {
+  if (!subsLetterStatus) return;
+  subsLetterStatus.textContent = "Checking…";
+  if (subsLetterCurrentLink) subsLetterCurrentLink.style.display = "none";
+
+  getDownloadURL(ref(storage, letterStoragePath(uid))).then((url) => {
+    subsLetterStatus.textContent = "A confirmation letter is already on file. Uploading a new one will replace it.";
+    if (subsLetterCurrentLink) {
+      subsLetterCurrentLink.href = url;
+      subsLetterCurrentLink.style.display = "inline-block";
+    }
+  }).catch((error) => {
+    if (error.code === "storage/object-not-found") {
+      subsLetterStatus.textContent = "No letter uploaded yet for this subscriber.";
+    } else {
+      console.error("Failed to check confirmation letter:", error);
+      subsLetterStatus.textContent = "Could not check for an existing letter.";
+    }
+  });
+}
+
+if (subsLetterInput) {
+  subsLetterInput.onchange = () => {
+    const file = subsLetterInput.files && subsLetterInput.files[0];
+    pendingLetterFile = null;
+    if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      subsLetterStatus.textContent = "Please choose a PDF file.";
+      subsLetterInput.value = "";
+      return;
+    }
+    if (file.size > MAX_LETTER_BYTES) {
+      subsLetterStatus.textContent = "That file is too large — please choose a PDF under 10 MB.";
+      subsLetterInput.value = "";
+      return;
+    }
+
+    pendingLetterFile = file;
+    subsLetterStatus.textContent = `Ready to upload: ${file.name}`;
+    if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = false;
+  };
+}
+
+if (subsLetterUploadBtn) {
+  subsLetterUploadBtn.onclick = async () => {
+    if (!pendingLetterFile || !currentSubscriberUid) return;
+    if (!isAdmin) {
+      subsLetterStatus.textContent = "You do not have organizer access.";
+      return;
+    }
+
+    subsLetterUploadBtn.disabled = true;
+    subsLetterStatus.textContent = "Uploading…";
+
+    try {
+      const letterRef = ref(storage, letterStoragePath(currentSubscriberUid));
+      await uploadBytes(letterRef, pendingLetterFile, { contentType: "application/pdf" });
+      pendingLetterFile = null;
+      if (subsLetterInput) subsLetterInput.value = "";
+      checkExistingLetter(currentSubscriberUid);
+      subsLetterStatus.textContent = "✅ Uploaded! The subscriber will see it in their My Account page.";
+    } catch (error) {
+      console.error("Failed to upload confirmation letter:", error);
+      subsLetterStatus.textContent = "Could not upload the letter: " + error.message;
+      subsLetterUploadBtn.disabled = false;
+    }
+  };
+}
+
 if (subscriberBackBtn) {
-  subscriberBackBtn.onclick = () => showSubscribersList();
+  subscriberBackBtn.onclick = () => {
+    currentSubscriberUid = null;
+    showSubscribersList();
+  };
 }
 
 if (navSubscribersLink) {

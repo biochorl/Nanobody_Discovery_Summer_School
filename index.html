@@ -7,7 +7,7 @@
   <title>Nanobody Discovery Summer School: Current & Future Methods</title>
   <meta name="description"
     content="Summer School on AI-based methods for de novo protein and nanobody binder design. 23-25 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
-  <link rel="stylesheet" href="style.css?v=21">
+  <link rel="stylesheet" href="style.css?v=22">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -413,6 +413,15 @@
         </div>
 
         <div id="account-unlocked-state" style="display:none;">
+          <div id="account-letter-card" class="doc-card">
+            <div class="doc-card-icon">📄</div>
+            <div class="doc-card-body">
+              <div class="doc-card-title" data-i18n="acc_letter_h">Confirmation letter</div>
+              <div id="account-letter-status" class="doc-card-status" data-i18n="acc_letter_pending">Not issued yet — the organisers will upload this once your registration is confirmed.</div>
+            </div>
+            <a id="account-letter-download" href="#" target="_blank" rel="noopener" class="register-btn" style="display:none;" data-i18n="acc_letter_download">⬇️ Download PDF</a>
+          </div>
+
           <div class="account-photo-row">
             <img id="account-photo-preview" class="account-avatar" src="" alt="Profile photo" style="display:none;">
             <div id="account-photo-placeholder" class="account-avatar account-avatar-placeholder">👤</div>
@@ -568,6 +577,20 @@
           </div>
 
           <p id="subs-detail-updated" style="font-size: 12px; color: var(--text-muted); margin-top: 20px;"></p>
+
+          <div class="doc-card" style="margin-top: 8px;">
+            <div class="doc-card-icon">📄</div>
+            <div class="doc-card-body">
+              <div class="doc-card-title" data-i18n="subs_letter_h">Confirmation letter</div>
+              <div id="subs-letter-status" class="doc-card-status" data-i18n="subs_letter_none">No letter uploaded yet for this subscriber.</div>
+              <div style="margin-top: 10px;">
+                <label for="subs-letter-input" class="register-btn" style="cursor:pointer; padding: 9px 20px; font-size: 13px;" data-i18n="subs_letter_choose">Choose PDF…</label>
+                <input type="file" id="subs-letter-input" accept="application/pdf" style="display:none;">
+                <button type="button" id="subs-letter-upload-btn" class="register-btn" style="border:none; cursor:pointer; margin-left: 8px;" disabled data-i18n="subs_letter_upload">Upload</button>
+              </div>
+            </div>
+            <a id="subs-letter-current-link" href="#" target="_blank" rel="noopener" class="register-btn" style="display:none;" data-i18n="acc_letter_download">⬇️ View current PDF</a>
+          </div>
         </div>
       </section>
 
@@ -737,7 +760,7 @@
 
   <script src="script.js?v=15"></script>
   <script src="lang.js?v=15"></script>
-  <script type="module" src="auth.js?v=18"></script>
+  <script type="module" src="auth.js?v=19"></script>
 </body>
 
 </html>
