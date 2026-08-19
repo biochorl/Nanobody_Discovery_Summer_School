@@ -413,15 +413,6 @@
         </div>
 
         <div id="account-unlocked-state" style="display:none;">
-          <div id="account-letter-card" class="doc-card">
-            <div class="doc-card-icon">📄</div>
-            <div class="doc-card-body">
-              <div class="doc-card-title" data-i18n="acc_letter_h">Confirmation letter</div>
-              <div id="account-letter-status" class="doc-card-status" data-i18n="acc_letter_pending">Not issued yet — the organisers will upload this once your registration is confirmed.</div>
-            </div>
-            <a id="account-letter-download" href="#" rel="noopener" class="register-btn" style="display:none;" data-i18n="acc_letter_download">⬇️ Download PDF</a>
-          </div>
-
           <div class="account-photo-row">
             <img id="account-photo-preview" class="account-avatar" src="" alt="Profile photo" style="display:none;">
             <div id="account-photo-placeholder" class="account-avatar account-avatar-placeholder">👤</div>
@@ -527,6 +518,15 @@
           <div id="account-save-status" style="font-size: 13px; margin-bottom: 10px; display: none;"></div>
 
           <button id="account-save-btn" class="register-btn" style="border:none; cursor:pointer;" data-i18n="acc_save">Save Changes</button>
+
+          <div id="account-letter-card" class="doc-card" style="margin-top: 24px; margin-bottom: 0;">
+            <div class="doc-card-icon">📄</div>
+            <div class="doc-card-body">
+              <div class="doc-card-title" data-i18n="acc_letter_h">Confirmation letter</div>
+              <div id="account-letter-status" class="doc-card-status" data-i18n="acc_letter_pending">Fill in and save your information above — your confirmation letter will appear here once the organisers issue it.</div>
+            </div>
+            <a id="account-letter-download" href="#" rel="noopener" class="register-btn" style="display:none;" data-i18n="acc_letter_download">⬇️ Download PDF</a>
+          </div>
         </div>
       </section>
 
@@ -761,7 +761,7 @@
 
   <script src="script.js?v=15"></script>
   <script src="lang.js?v=15"></script>
-  <script type="module" src="auth.js?v=20"></script>
+  <script type="module" src="auth.js?v=21"></script>
 </body>
 
 </html>
