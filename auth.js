@@ -441,7 +441,7 @@ function loadConfirmationLetter(user) {
       accountLetterDownload.download = snap.data().fileName || "confirmation-letter.pdf";
       accountLetterDownload.style.display = "inline-block";
     } else {
-      accountLetterStatus.textContent = "Not issued yet — the organisers will upload this once your registration is confirmed.";
+      accountLetterStatus.textContent = "Fill in and save your information above — your confirmation letter will appear here once the organisers issue it.";
       accountLetterDownload.style.display = "none";
     }
   }).catch((error) => {
