@@ -423,6 +423,21 @@
             </div>
           </div>
 
+          <div id="account-abstract-card" class="doc-card" style="margin-top: 24px;">
+            <div class="doc-card-icon">📝</div>
+            <div class="doc-card-body">
+              <div class="doc-card-title" data-i18n="acc_abstract_h">Abstract (Word document)</div>
+              <div id="account-abstract-status" class="doc-card-status" data-i18n="acc_abstract_none">No abstract uploaded yet.</div>
+              <div style="margin-top: 10px;">
+                <label for="account-abstract-input" class="register-btn" style="cursor:pointer; padding: 9px 20px; font-size: 13px;" data-i18n="acc_abstract_choose">Choose .doc/.docx…</label>
+                <input type="file" id="account-abstract-input" accept=".doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none;">
+                <button type="button" id="account-abstract-upload-btn" class="register-btn" style="border:none; cursor:pointer; margin-left: 8px;" disabled data-i18n="acc_abstract_upload">Upload</button>
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 6px;" data-i18n="acc_abstract_hint">Max 300 KB, .doc or .docx only.</div>
+              </div>
+            </div>
+            <a id="account-abstract-download" href="#" rel="noopener" class="register-btn" style="display:none;" data-i18n="acc_abstract_download">⬇️ Download my abstract</a>
+          </div>
+
           <div class="auth-form-group" style="margin-top: 24px;">
             <label data-i18n="acc_email">Email address</label>
             <input type="email" id="account-email" disabled style="opacity: 0.7;">
@@ -593,6 +608,15 @@
           </div>
 
           <p id="subs-detail-updated" style="font-size: 12px; color: var(--text-muted); margin-top: 20px;"></p>
+
+          <div class="doc-card" style="margin-top: 8px;">
+            <div class="doc-card-icon">📝</div>
+            <div class="doc-card-body">
+              <div class="doc-card-title" data-i18n="subs_abstract_h">Abstract (submitted by subscriber)</div>
+              <div id="subs-abstract-status" class="doc-card-status" data-i18n="subs_abstract_none">No abstract submitted yet.</div>
+            </div>
+            <a id="subs-abstract-download" href="#" rel="noopener" class="register-btn" style="display:none;" data-i18n="subs_abstract_view">⬇️ Download abstract</a>
+          </div>
 
           <div class="doc-card" style="margin-top: 8px;">
             <div class="doc-card-icon">📄</div>
@@ -777,7 +801,7 @@
 
   <script src="script.js?v=15"></script>
   <script src="lang.js?v=15"></script>
-  <script type="module" src="auth.js?v=22"></script>
+  <script type="module" src="auth.js?v=23"></script>
 </body>
 
 </html>
