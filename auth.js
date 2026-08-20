@@ -73,6 +73,12 @@ const accountSaveStatus = document.getElementById("account-save-status");
 const accountLetterStatus = document.getElementById("account-letter-status");
 const accountLetterDownload = document.getElementById("account-letter-download");
 
+// DOM Elements — Abstract upload (self-service, every logged-in user incl. the organizer)
+const accountAbstractStatus = document.getElementById("account-abstract-status");
+const accountAbstractInput = document.getElementById("account-abstract-input");
+const accountAbstractUploadBtn = document.getElementById("account-abstract-upload-btn");
+const accountAbstractDownload = document.getElementById("account-abstract-download");
+
 // DOM Elements — Delete my account (self-service, open until 1 September 2026)
 const accountDangerZone = document.getElementById("account-danger-zone");
 const accountDeleteOpen = document.getElementById("account-delete-open");
@@ -107,6 +113,8 @@ const subsLetterStatus = document.getElementById("subs-letter-status");
 const subsLetterInput = document.getElementById("subs-letter-input");
 const subsLetterUploadBtn = document.getElementById("subs-letter-upload-btn");
 const subsLetterCurrentLink = document.getElementById("subs-letter-current-link");
+const subsAbstractStatus = document.getElementById("subs-abstract-status");
+const subsAbstractDownload = document.getElementById("subs-abstract-download");
 
 const POSITION_LABELS = {
   master: "Master student",
@@ -127,6 +135,8 @@ let isAdmin = false;
 let currentSubscriberUid = null; // whichever subscriber the organizer is currently viewing
 let pendingLetterDataUrl = null;
 let pendingLetterFileName = null;
+let pendingAbstractDataUrl = null;
+let pendingAbstractFileName = null;
 
 // Confirmation letters live in their own Firestore collection — one document per user,
 // keyed by their UID, separate from the `users` collection so a large PDF never eats
@@ -136,6 +146,16 @@ let pendingLetterFileName = null;
 // Raw file size cap is kept well under Firestore's 1 MiB per-document limit once
 // base64-encoded (~37% larger than the original file).
 const MAX_LETTER_BYTES = 650 * 1024; // 650 KB raw → ~890 KB encoded, leaves headroom
+
+// Abstracts live in their own Firestore collection too (abstracts/{uid}), unlike the
+// letter this one is writable by the owning user themselves — it's their own submission,
+// not something only the organizer issues. Same size-cap reasoning as the letter.
+const MAX_ABSTRACT_BYTES = 300 * 1024; // 300 KB raw → ~410 KB encoded
+const ALLOWED_ABSTRACT_EXTENSIONS = [".doc", ".docx"];
+const ALLOWED_ABSTRACT_MIME_TYPES = [
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+];
 
 // Check if current time is past midnight today (2026-08-04 00:00:00)
 function isPastMidnight() {
@@ -343,6 +363,12 @@ function resetAccountForm() {
   if (accountSaveStatus) accountSaveStatus.style.display = "none";
   if (accountLetterStatus) accountLetterStatus.textContent = "";
   if (accountLetterDownload) { accountLetterDownload.style.display = "none"; accountLetterDownload.href = "#"; }
+  pendingAbstractDataUrl = null;
+  pendingAbstractFileName = null;
+  if (accountAbstractInput) accountAbstractInput.value = "";
+  if (accountAbstractUploadBtn) accountAbstractUploadBtn.disabled = true;
+  if (accountAbstractStatus) accountAbstractStatus.textContent = "";
+  if (accountAbstractDownload) { accountAbstractDownload.style.display = "none"; accountAbstractDownload.href = "#"; }
   if (accountDeletePassword) accountDeletePassword.value = "";
   if (accountDeleteStatus) { accountDeleteStatus.textContent = ""; accountDeleteStatus.style.display = "none"; }
   if (accountDangerZone) accountDangerZone.style.display = "none";
@@ -360,12 +386,13 @@ function resetAccountForm() {
   if (subscribersList) subscribersList.innerHTML = "";
   [subsDetailName, subsDetailEmail, subsDetailPosition, subsDetailInstitution, subsDetailCountry,
    subsDetailPhone, subsDetailDietary, subsDetailTrip, subsDetailInvoice, subsDetailBio,
-   subsDetailNotes, subsDetailUpdated, subsLetterStatus].forEach(el => { if (el) el.textContent = ""; });
+   subsDetailNotes, subsDetailUpdated, subsLetterStatus, subsAbstractStatus].forEach(el => { if (el) el.textContent = ""; });
   if (subsDetailPhoto) { subsDetailPhoto.style.display = "none"; subsDetailPhoto.src = ""; }
   if (subsDetailPhotoPlaceholder) subsDetailPhotoPlaceholder.style.display = "flex";
   if (subsLetterInput) subsLetterInput.value = "";
   if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
   if (subsLetterCurrentLink) { subsLetterCurrentLink.style.display = "none"; subsLetterCurrentLink.href = "#"; }
+  if (subsAbstractDownload) { subsAbstractDownload.style.display = "none"; subsAbstractDownload.href = "#"; }
 
   // If the organizer was on the Subscribers tab, don't leave them staring at an
   // empty admin-only page after logout — send them back to the public Overview tab.
@@ -486,9 +513,96 @@ function loadConfirmationLetter(user) {
   });
 }
 
+// Look up the signed-in user's own abstract, stored at abstracts/{uid}. Same scoping
+// guarantee as loadConfirmationLetter — always auth.currentUser, never a passed-in UID.
+function loadAbstract(user) {
+  if (!accountAbstractStatus || !accountAbstractDownload) return;
+  accountAbstractStatus.textContent = "Checking…";
+  accountAbstractDownload.style.display = "none";
+
+  getDoc(doc(db, "abstracts", user.uid)).then((snap) => {
+    if (snap.exists() && snap.data().abstractDataUrl) {
+      accountAbstractStatus.textContent = `Current abstract: ${snap.data().fileName || "abstract"} — uploading a new one will replace it.`;
+      accountAbstractDownload.href = snap.data().abstractDataUrl;
+      accountAbstractDownload.download = snap.data().fileName || "abstract.docx";
+      accountAbstractDownload.style.display = "inline-block";
+    } else {
+      accountAbstractStatus.textContent = "No abstract uploaded yet.";
+      accountAbstractDownload.style.display = "none";
+    }
+  }).catch((error) => {
+    console.error("Failed to check abstract:", error);
+    accountAbstractStatus.textContent = "Could not check your abstract right now.";
+    accountAbstractDownload.style.display = "none";
+  });
+}
+
+if (accountAbstractInput) {
+  accountAbstractInput.onchange = () => {
+    const file = accountAbstractInput.files && accountAbstractInput.files[0];
+    pendingAbstractDataUrl = null;
+    pendingAbstractFileName = null;
+    if (accountAbstractUploadBtn) accountAbstractUploadBtn.disabled = true;
+    if (!file) return;
+
+    const nameLower = file.name.toLowerCase();
+    const extOk = ALLOWED_ABSTRACT_EXTENSIONS.some(ext => nameLower.endsWith(ext));
+    const typeOk = ALLOWED_ABSTRACT_MIME_TYPES.includes(file.type);
+    if (!extOk && !typeOk) {
+      accountAbstractStatus.textContent = "Please choose a .doc or .docx file.";
+      accountAbstractInput.value = "";
+      return;
+    }
+    if (file.size > MAX_ABSTRACT_BYTES) {
+      accountAbstractStatus.textContent = `That file is too large — please choose one under ${Math.round(MAX_ABSTRACT_BYTES / 1024)} KB.`;
+      accountAbstractInput.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      pendingAbstractDataUrl = e.target.result;
+      pendingAbstractFileName = file.name;
+      accountAbstractStatus.textContent = `Ready to upload: ${file.name}`;
+      if (accountAbstractUploadBtn) accountAbstractUploadBtn.disabled = false;
+    };
+    reader.onerror = () => {
+      accountAbstractStatus.textContent = "Could not read that file.";
+    };
+    reader.readAsDataURL(file);
+  };
+}
+
+if (accountAbstractUploadBtn) {
+  accountAbstractUploadBtn.onclick = async () => {
+    const user = auth.currentUser;
+    if (!user || !pendingAbstractDataUrl) return;
+
+    accountAbstractUploadBtn.disabled = true;
+    accountAbstractStatus.textContent = "Uploading…";
+
+    try {
+      await setDoc(doc(db, "abstracts", user.uid), {
+        abstractDataUrl: pendingAbstractDataUrl,
+        fileName: pendingAbstractFileName,
+        uploadedAt: new Date().toISOString()
+      });
+      pendingAbstractDataUrl = null;
+      pendingAbstractFileName = null;
+      if (accountAbstractInput) accountAbstractInput.value = "";
+      loadAbstract(user);
+    } catch (error) {
+      console.error("Failed to upload abstract:", error);
+      accountAbstractStatus.textContent = "Could not upload your abstract: " + error.message;
+      accountAbstractUploadBtn.disabled = false;
+    }
+  };
+}
+
 function loadAccountData(user) {
   if (accountEmailField) accountEmailField.value = user.email || "";
   loadConfirmationLetter(user);
+  loadAbstract(user);
   updateDeleteZoneVisibility();
 
   const userDocRef = doc(db, "users", user.uid);
@@ -649,6 +763,9 @@ if (accountDeleteBtn) {
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
       await deleteDoc(doc(db, "users", user.uid));
+      // Unlike letters/{uid} (admin-write-only), abstracts/{uid} is self-writable —
+      // so this is the one piece of the deletion audit we CAN actually clean up here.
+      await deleteDoc(doc(db, "abstracts", user.uid));
       await deleteUser(user);
       // deleteUser signs the user out automatically; onAuthStateChanged will reset the UI.
       alert("Your account has been deleted.");
@@ -796,9 +913,36 @@ function viewSubscriberDetail(uid, data) {
   if (subsLetterInput) subsLetterInput.value = "";
   if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
   checkExistingLetter(uid);
+  checkSubscriberAbstract(uid);
 
   if (subscribersListView) subscribersListView.style.display = "none";
   if (subscriberDetailView) subscriberDetailView.style.display = "block";
+}
+
+// Shows whether the subscriber currently being viewed has submitted an abstract, and a
+// link to download it — strictly read-only, there is no upload control here. Read access
+// relies on the caller being an admin (per the Firestore rules on the abstracts
+// collection); this only ever reads, never writes to another user's document.
+function checkSubscriberAbstract(uid) {
+  if (!subsAbstractStatus) return;
+  subsAbstractStatus.textContent = "Checking…";
+  if (subsAbstractDownload) subsAbstractDownload.style.display = "none";
+
+  getDoc(doc(db, "abstracts", uid)).then((snap) => {
+    if (snap.exists() && snap.data().abstractDataUrl) {
+      subsAbstractStatus.textContent = `Submitted: ${snap.data().fileName || "abstract"}`;
+      if (subsAbstractDownload) {
+        subsAbstractDownload.href = snap.data().abstractDataUrl;
+        subsAbstractDownload.download = snap.data().fileName || "abstract.docx";
+        subsAbstractDownload.style.display = "inline-block";
+      }
+    } else {
+      subsAbstractStatus.textContent = "No abstract submitted yet.";
+    }
+  }).catch((error) => {
+    console.error("Failed to check subscriber abstract:", error);
+    subsAbstractStatus.textContent = "Could not check for an abstract.";
+  });
 }
 
 // Shows whether a confirmation letter already exists for the subscriber currently being
