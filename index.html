@@ -472,6 +472,10 @@
               <label data-i18n="acc_phone">Phone number (optional)</label>
               <input type="tel" id="account-phone" placeholder="e.g. +386 ..." maxlength="30" autocomplete="tel">
             </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_arrival">Expected arrival time (optional)</label>
+              <input type="text" id="account-arrival" placeholder="e.g. Tue 22/09, ~18:00 by train" maxlength="120" autocomplete="off">
+            </div>
           </div>
 
           <div class="auth-form-group">
@@ -486,6 +490,13 @@
 
           <h4 class="account-subsection-title" data-i18n="acc_invoice_h">🧾 Invoice / billing information</h4>
           <p class="account-subsection-hint" data-i18n="acc_invoice_hint">Needed to issue the invoice for the €70 registration fee. We only ask for a billing address — never for card or payment details.</p>
+
+          <p class="account-subsection-hint" data-i18n="acc_bill_institution_q">Is the registration fee being paid by your Institution?</p>
+          <div class="trip-toggle-group" role="radiogroup" aria-label="Bill paid by Institution">
+            <label class="trip-toggle"><input type="radio" name="account-bill-institution" id="account-bill-institution-yes" value="yes"><span data-i18n="acc_bill_institution_yes">🏛️ Yes — billed to my Institution</span></label>
+            <label class="trip-toggle"><input type="radio" name="account-bill-institution" id="account-bill-institution-no" value="no"><span data-i18n="acc_bill_institution_no">🙋 No — billed to me personally</span></label>
+          </div>
+          <p class="account-subsection-hint" data-i18n="acc_bill_institution_hint">If your Institution is paying, please enter your <strong>Institution's</strong> name and address below. If you are paying personally, please enter <strong>your own</strong> name and residential address below.</p>
 
           <div class="auth-form-group">
             <label data-i18n="acc_invoice_name">Invoice name (person or institution) <span class="required-mark">*</span></label>
@@ -512,6 +523,10 @@
             <div class="auth-form-group">
               <label data-i18n="acc_invoice_vat">VAT / Tax ID (optional)</label>
               <input type="text" id="account-invoice-vat" placeholder="e.g. SI12345678" maxlength="40" autocomplete="off">
+            </div>
+            <div class="auth-form-group">
+              <label data-i18n="acc_personal_vat">Personal VAT number — Mandatory for Slovenian subscribers</label>
+              <input type="text" id="account-personal-vat" placeholder="e.g. SI12345678 (davčna številka)" maxlength="40" autocomplete="off">
             </div>
           </div>
 
@@ -589,11 +604,14 @@
             <div><dt data-i18n="acc_institution">Institution / Affiliation</dt><dd id="subs-detail-institution">—</dd></div>
             <div><dt data-i18n="acc_country">Country</dt><dd id="subs-detail-country">—</dd></div>
             <div><dt data-i18n="acc_phone">Phone number</dt><dd id="subs-detail-phone">—</dd></div>
+            <div><dt data-i18n="acc_arrival">Expected arrival time</dt><dd id="subs-detail-arrival">—</dd></div>
             <div><dt data-i18n="acc_dietary">Dietary restrictions / allergies</dt><dd id="subs-detail-dietary">—</dd></div>
             <div><dt data-i18n="acc_trip_h">Friday mountain trip</dt><dd id="subs-detail-trip">—</dd></div>
           </dl>
 
           <dl class="subscriber-readonly-grid">
+            <div><dt data-i18n="acc_bill_institution_q">Billed to Institution?</dt><dd id="subs-detail-bill-institution">—</dd></div>
+            <div><dt data-i18n="acc_personal_vat">Personal VAT number</dt><dd id="subs-detail-personal-vat">—</dd></div>
             <div style="grid-column: 1 / -1;"><dt data-i18n="acc_invoice_h">Invoice / billing information</dt><dd id="subs-detail-invoice">—</dd></div>
           </dl>
 
