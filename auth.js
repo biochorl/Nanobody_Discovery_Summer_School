@@ -53,6 +53,7 @@ const accountPosition = document.getElementById("account-position");
 const accountInstitution = document.getElementById("account-institution");
 const accountCountry = document.getElementById("account-country");
 const accountPhone = document.getElementById("account-phone");
+const accountArrival = document.getElementById("account-arrival");
 const accountDietary = document.getElementById("account-dietary");
 const accountBio = document.getElementById("account-bio");
 const accountPhotoInput = document.getElementById("account-photo-input");
@@ -64,6 +65,8 @@ const accountInvoiceCity = document.getElementById("account-invoice-city");
 const accountInvoiceZip = document.getElementById("account-invoice-zip");
 const accountInvoiceCountry = document.getElementById("account-invoice-country");
 const accountInvoiceVat = document.getElementById("account-invoice-vat");
+const accountPersonalVat = document.getElementById("account-personal-vat");
+const accountBillInstitutionRadios = document.querySelectorAll('input[name="account-bill-institution"]');
 const accountTripRadios = document.querySelectorAll('input[name="account-trip-interest"]');
 const accountNotes = document.getElementById("account-notes");
 const accountSaveBtn = document.getElementById("account-save-btn");
@@ -103,9 +106,12 @@ const subsDetailPosition = document.getElementById("subs-detail-position");
 const subsDetailInstitution = document.getElementById("subs-detail-institution");
 const subsDetailCountry = document.getElementById("subs-detail-country");
 const subsDetailPhone = document.getElementById("subs-detail-phone");
+const subsDetailArrival = document.getElementById("subs-detail-arrival");
 const subsDetailDietary = document.getElementById("subs-detail-dietary");
 const subsDetailTrip = document.getElementById("subs-detail-trip");
 const subsDetailInvoice = document.getElementById("subs-detail-invoice");
+const subsDetailBillInstitution = document.getElementById("subs-detail-bill-institution");
+const subsDetailPersonalVat = document.getElementById("subs-detail-personal-vat");
 const subsDetailBio = document.getElementById("subs-detail-bio");
 const subsDetailNotes = document.getElementById("subs-detail-notes");
 const subsDetailUpdated = document.getElementById("subs-detail-updated");
@@ -128,6 +134,10 @@ const TRIP_LABELS = {
   yes: "🙋 Yes, interested",
   maybe: "🤔 Maybe",
   no: "🙅 No, thanks"
+};
+const BILL_INSTITUTION_LABELS = {
+  yes: "🏛️ Yes — billed to Institution",
+  no: "🙋 No — billed personally"
 };
 
 let isLoginMode = true;
@@ -348,6 +358,7 @@ function resetAccountForm() {
   if (accountInstitution) accountInstitution.value = "";
   if (accountCountry) accountCountry.value = "";
   if (accountPhone) accountPhone.value = "";
+  if (accountArrival) accountArrival.value = "";
   if (accountDietary) accountDietary.value = "";
   if (accountBio) accountBio.value = "";
   if (accountInvoiceName) accountInvoiceName.value = "";
@@ -356,6 +367,8 @@ function resetAccountForm() {
   if (accountInvoiceZip) accountInvoiceZip.value = "";
   if (accountInvoiceCountry) accountInvoiceCountry.value = "";
   if (accountInvoiceVat) accountInvoiceVat.value = "";
+  if (accountPersonalVat) accountPersonalVat.value = "";
+  accountBillInstitutionRadios.forEach(r => { r.checked = false; });
   accountTripRadios.forEach(r => { r.checked = false; });
   if (accountNotes) accountNotes.value = "";
   if (accountPhotoPreview) { accountPhotoPreview.style.display = "none"; accountPhotoPreview.src = ""; }
@@ -385,7 +398,8 @@ function resetAccountForm() {
   if (subscribersListView) subscribersListView.style.display = "block";
   if (subscribersList) subscribersList.innerHTML = "";
   [subsDetailName, subsDetailEmail, subsDetailPosition, subsDetailInstitution, subsDetailCountry,
-   subsDetailPhone, subsDetailDietary, subsDetailTrip, subsDetailInvoice, subsDetailBio,
+   subsDetailPhone, subsDetailArrival, subsDetailDietary, subsDetailTrip, subsDetailInvoice,
+   subsDetailBillInstitution, subsDetailPersonalVat, subsDetailBio,
    subsDetailNotes, subsDetailUpdated, subsLetterStatus, subsAbstractStatus].forEach(el => { if (el) el.textContent = ""; });
   if (subsDetailPhoto) { subsDetailPhoto.style.display = "none"; subsDetailPhoto.src = ""; }
   if (subsDetailPhotoPlaceholder) subsDetailPhotoPlaceholder.style.display = "flex";
@@ -614,6 +628,7 @@ function loadAccountData(user) {
     if (accountInstitution && data.institution) accountInstitution.value = data.institution;
     if (accountCountry && data.country) accountCountry.value = data.country;
     if (accountPhone && data.phone) accountPhone.value = data.phone;
+    if (accountArrival && data.arrivalTime) accountArrival.value = data.arrivalTime;
     if (accountDietary && data.dietary) accountDietary.value = data.dietary;
     if (accountBio && data.bio) accountBio.value = data.bio;
     if (accountInvoiceName && data.invoiceName) accountInvoiceName.value = data.invoiceName;
@@ -622,6 +637,10 @@ function loadAccountData(user) {
     if (accountInvoiceZip && data.invoiceZip) accountInvoiceZip.value = data.invoiceZip;
     if (accountInvoiceCountry && data.invoiceCountry) accountInvoiceCountry.value = data.invoiceCountry;
     if (accountInvoiceVat && data.invoiceVat) accountInvoiceVat.value = data.invoiceVat;
+    if (accountPersonalVat && data.personalVat) accountPersonalVat.value = data.personalVat;
+    if (data.billInstitution) {
+      accountBillInstitutionRadios.forEach(r => { r.checked = (r.value === data.billInstitution); });
+    }
     if (data.tripInterest) {
       accountTripRadios.forEach(r => { r.checked = (r.value === data.tripInterest); });
     }
@@ -677,6 +696,7 @@ if (accountSaveBtn) {
         institution: accountInstitution ? accountInstitution.value.trim() : "",
         country: accountCountry ? accountCountry.value.trim() : "",
         phone: accountPhone ? accountPhone.value.trim() : "",
+        arrivalTime: accountArrival ? accountArrival.value.trim() : "",
         dietary: accountDietary ? accountDietary.value.trim() : "",
         bio: accountBio ? accountBio.value.trim() : "",
         invoiceName: accountInvoiceName ? accountInvoiceName.value.trim() : "",
@@ -685,6 +705,11 @@ if (accountSaveBtn) {
         invoiceZip: accountInvoiceZip ? accountInvoiceZip.value.trim() : "",
         invoiceCountry: accountInvoiceCountry ? accountInvoiceCountry.value.trim() : "",
         invoiceVat: accountInvoiceVat ? accountInvoiceVat.value.trim() : "",
+        personalVat: accountPersonalVat ? accountPersonalVat.value.trim() : "",
+        billInstitution: (() => {
+          const checked = Array.from(accountBillInstitutionRadios).find(r => r.checked);
+          return checked ? checked.value : "";
+        })(),
         tripInterest: (() => {
           const checked = Array.from(accountTripRadios).find(r => r.checked);
           return checked ? checked.value : "";
@@ -878,8 +903,11 @@ function viewSubscriberDetail(uid, data) {
   if (subsDetailInstitution) subsDetailInstitution.textContent = data.institution || "—";
   if (subsDetailCountry) subsDetailCountry.textContent = data.country || "—";
   if (subsDetailPhone) subsDetailPhone.textContent = data.phone || "—";
+  if (subsDetailArrival) subsDetailArrival.textContent = data.arrivalTime || "—";
   if (subsDetailDietary) subsDetailDietary.textContent = data.dietary || "—";
   if (subsDetailTrip) subsDetailTrip.textContent = TRIP_LABELS[data.tripInterest] || "—";
+  if (subsDetailBillInstitution) subsDetailBillInstitution.textContent = BILL_INSTITUTION_LABELS[data.billInstitution] || "—";
+  if (subsDetailPersonalVat) subsDetailPersonalVat.textContent = data.personalVat || "—";
   if (subsDetailBio) subsDetailBio.textContent = data.bio || "—";
   if (subsDetailNotes) subsDetailNotes.textContent = data.notes || "—";
 
