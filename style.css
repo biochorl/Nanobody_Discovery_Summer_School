@@ -652,6 +652,20 @@ blockquote {
   font-size: 12px;
 }
 .timetable-location .loc-maps-link:hover { text-decoration: underline; }
+.social-photo-link {
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+  transition: all var(--transition);
+}
+.social-photo-link:hover {
+  transform: translateY(-4px);
+  border-color: var(--border-glow);
+  box-shadow: 0 12px 40px rgba(6, 182, 212, 0.25);
+}
+.social-photo-link img { display: block; width: 100%; }
 
 /* ===== Contributions ===== */
 .contribution-card {

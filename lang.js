@@ -7,7 +7,7 @@ const translations = {
     "event_loc": "University of Nova Gorica",
     "event_tz": "Europe/Ljubljana timezone",
     "nav_overview": "Overview",
-    "nav_programme": "Scientific talks",
+    "nav_programme": "Abstracts",
     "nav_timetable": "Timetable",
     "nav_contrib": "Programme Contributions",
     "nav_reg": "Registration",
@@ -52,7 +52,12 @@ const translations = {
     "btn_login": "Login to Register",
     
     "eve_h2": "Social Activities",
-    "eve_desc": "We'll share a full schedule soon, but you can already look forward to relaxed after-hours gatherings designed to bring everyone together. We will have a social dinner with all the speakers on the second day. The Summer School overlaps with <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, the most awaited event of the year for the city of Gorizia: as every year, along the main city streets several food and beverage enogastronomic stands will arrive from all over the world, and will be accompanied with music, fun and shows. An event to not miss!",
+    "eve_dinner_h": "🍽️ Social Dinner — Šmartno",
+    "eve_dinner_desc": "On Thursday evening we’ll all head to <strong>Šmartno</strong>, a picturesque walled medieval village perched on a hilltop in the Goriška Brda wine region. See the schedule for the exact venue and departure details — and <a href='https://www.sanmartin.si/en' target='_blank' rel='noopener'>sanmartin.si</a> for more on the village and its hospitality.",
+    "eve_trek_h": "🥾 Friday Trekking — Cerje",
+    "eve_trek_desc": "On Friday afternoon, once the Summer School wraps up, anyone up for it is welcome to join a soft trekking to <a href='https://share.google/dTDxLGhKbrEZ83KRB' target='_blank' rel='noopener'>Cerje</a>, home to the 25-metre Peace Monument — a hilltop tower-museum tracing Slovenian history across seven levels, from the earliest surviving Slovenian texts to the Isonzo Front, with a panoramic terrace over Gorizia, the Karst, the Vipava Valley, the Friuli Plain and the Adriatic Sea. From the UNG Rožna Dolina campus it’s about 1h30 on foot to Miren (or ~20 min by bus, line N6237), then a further ~1h, 300 m climb up to Cerje — roughly 2h30 door to door. See the <a href='https://www.komoot.it/smarttour/12140676?ref=atd&t_s=referral&t_cid=route_share' target='_blank' rel='noopener'>Komoot route</a> for the full trekking details. Right at Cerje there's also <a href='https://share.google/3sycP4v41QWhM1Fnt' target='_blank' rel='noopener'>a spot with a view</a> where you can sit down for food and drinks.",
+    "eve_gusti_h": "🎪 Gusti di Frontiera",
+    "eve_desc": "The Summer School overlaps with <a href='https://gustidifrontiera.it/' target='_blank'>'Gusti di Frontiera'</a>, the most awaited event of the year for the city of Gorizia: as every year, along the main city streets several food and beverage enogastronomic stands will arrive from all over the world, and will be accompanied with music, fun and shows. An event to not miss!",
     
     "faq_h2": "FAQs",
     "about_h2": "About Us",
