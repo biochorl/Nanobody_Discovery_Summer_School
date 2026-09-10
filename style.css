@@ -629,6 +629,29 @@ blockquote {
   border-color: rgba(16, 185, 129, 0.2);
   border-left-color: #10b981;
 }
+.timetable-location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: rgba(59, 130, 246, 0.06);
+  border: 1px solid rgba(59, 130, 246, 0.18);
+  border-radius: var(--radius-sm);
+  padding: 10px 16px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.timetable-location .loc-icon { font-size: 15px; }
+.timetable-location .loc-text em { color: var(--text); font-style: normal; }
+.timetable-location .loc-maps-link {
+  margin-left: auto;
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 12px;
+}
+.timetable-location .loc-maps-link:hover { text-decoration: underline; }
 
 /* ===== Contributions ===== */
 .contribution-card {
