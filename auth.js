@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, Bytes } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 // Note: this project intentionally does NOT use Firebase Storage — as of late 2024,
 // new Cloud Storage for Firebase buckets require the paid Blaze plan. Photos and
 // confirmation letters are instead stored as compact base64 text directly in
@@ -39,6 +39,8 @@ const errorMsg = document.getElementById("auth-error-msg");
 const authTabSignin = document.getElementById("auth-tab-signin");
 const authTabRegister = document.getElementById("auth-tab-register");
 const authTogglePw = document.getElementById("auth-toggle-pw");
+const forgotWrap = document.getElementById("auth-forgot-wrap");
+const forgotLink = document.getElementById("auth-forgot-link");
 
 const topLoginBtn = document.getElementById("open-login-btn");
 const topEmailDisplay = document.getElementById("user-email-display");
@@ -82,6 +84,14 @@ const accountAbstractInput = document.getElementById("account-abstract-input");
 const accountAbstractUploadBtn = document.getElementById("account-abstract-upload-btn");
 const accountAbstractDownload = document.getElementById("account-abstract-download");
 
+// DOM Elements — Talk slides upload (speakers only; hidden unless the organizer assigned a talk)
+const accountPresentationCard = document.getElementById("account-presentation-card");
+const accountPresentationTalk = document.getElementById("account-presentation-talk");
+const accountPresentationStatus = document.getElementById("account-presentation-status");
+const accountPresentationInput = document.getElementById("account-presentation-input");
+const accountPresentationUploadBtn = document.getElementById("account-presentation-upload-btn");
+const accountPresentationDownload = document.getElementById("account-presentation-download");
+
 // DOM Elements — Delete my account (self-service, open until 1 September 2026)
 const accountDangerZone = document.getElementById("account-danger-zone");
 const accountDeleteOpen = document.getElementById("account-delete-open");
@@ -121,6 +131,13 @@ const subsLetterUploadBtn = document.getElementById("subs-letter-upload-btn");
 const subsLetterCurrentLink = document.getElementById("subs-letter-current-link");
 const subsAbstractStatus = document.getElementById("subs-abstract-status");
 const subsAbstractDownload = document.getElementById("subs-abstract-download");
+const subsSpeakerSelect = document.getElementById("subs-speaker-select");
+const galleryStatus = document.getElementById("gallery-status");
+const galleryAdmin = document.getElementById("gallery-admin");
+const galleryInput = document.getElementById("gallery-input");
+const galleryUploadStatus = document.getElementById("gallery-upload-status");
+const galleryGrid = document.getElementById("gallery-grid");
+const subsSpeakerStatus = document.getElementById("subs-speaker-status");
 
 const POSITION_LABELS = {
   master: "Master student",
@@ -147,6 +164,8 @@ let pendingLetterDataUrl = null;
 let pendingLetterFileName = null;
 let pendingAbstractDataUrl = null;
 let pendingAbstractFileName = null;
+let pendingPresentationFile = null;
+let currentSpeakerTalkId = null; // talk id (e.g. "talk-marco") the signed-in user may upload slides for
 
 // Confirmation letters live in their own Firestore collection — one document per user,
 // keyed by their UID, separate from the `users` collection so a large PDF never eats
@@ -166,6 +185,93 @@ const ALLOWED_ABSTRACT_MIME_TYPES = [
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 ];
+
+// Talk slides: only speakers upload them. The organizer marks an account as the speaker of a
+// talk in the Subscribers panel (speakers/{uid} = { talkId }, admin-write-only); the speaker can
+// then write presentations/{talkId}, which every signed-in (registered) user can download from
+// that talk's card — it is the card's "restricted material". Enforced by firestore.rules.
+//
+// A Firestore document holds at most 1 MiB, so each file is stored as raw bytes split across
+// presentations/{talkId}/chunks/{0..n-1} (~900 KB each), with presentations/{talkId} holding
+// the name/type/chunk count. Like abstracts, it never touches the public GitHub repo.
+// ponytail: chunked Firestore instead of Firebase Storage, which needs the paid Blaze plan.
+// Ceiling: the free Spark tier (1 GiB stored, ~10 GiB/month downloaded) — plenty for a handful
+// of decks. Upgrade path if decks get huge or downloads heavy: Storage + uploadBytes().
+// 100 MB ≈ 112 chunk writes; 30 downloads of a deck that size ≈ 3 GB of the ~10 GiB/month free quota.
+const MAX_PRESENTATION_BYTES = 100 * 1024 * 1024; // 100 MB
+const SLIDES_CHUNK_BYTES = 900 * 1024;
+const ALLOWED_PRESENTATION_EXTENSIONS = [".ppt", ".pptx", ".pdf"];
+
+// "" if the file is acceptable as talk slides, otherwise the message to show
+function slidesFileError(file) {
+  const name = file.name.toLowerCase();
+  if (!ALLOWED_PRESENTATION_EXTENSIONS.some(ext => name.endsWith(ext))) return "Please choose a .ppt, .pptx or .pdf file.";
+  if (file.size > MAX_PRESENTATION_BYTES) return `That file is too large — max ${MAX_PRESENTATION_BYTES / 1024 / 1024} MB.`;
+  return "";
+}
+
+// Chunked file storage shared by talk slides (presentations/*) and the image gallery (gallery/*):
+// {col}/{id} holds the metadata, {col}/{id}/chunks/{0..n-1} the raw bytes.
+// Chunks first, metadata last, so readers only see the new chunk count once every chunk
+// exists; leftover chunks from a bigger previous file are then removed.
+async function saveChunkedFile(col, id, bytes, meta, onProgress) {
+  const count = Math.max(1, Math.ceil(bytes.length / SLIDES_CHUNK_BYTES));
+  const old = await getDoc(doc(db, col, id));
+  const oldCount = old.exists() ? (old.data().chunkCount || 0) : 0;
+  for (let i = 0; i < count; i++) {
+    if (onProgress) onProgress(Math.round((i / count) * 100));
+    await setDoc(doc(db, col, id, "chunks", String(i)), {
+      data: Bytes.fromUint8Array(bytes.subarray(i * SLIDES_CHUNK_BYTES, (i + 1) * SLIDES_CHUNK_BYTES))
+    });
+  }
+  await setDoc(doc(db, col, id), {
+    ...meta,
+    size: bytes.length,
+    chunkCount: count,
+    uploadedBy: auth.currentUser.uid,
+    uploadedAt: new Date().toISOString()
+  });
+  for (let i = count; i < oldCount; i++) {
+    await deleteDoc(doc(db, col, id, "chunks", String(i)));
+  }
+}
+
+// Resolves { blob, meta }, or null if nothing is stored there yet.
+async function loadChunkedFile(col, id) {
+  const snap = await getDoc(doc(db, col, id));
+  if (!snap.exists() || !snap.data().chunkCount) return null;
+  const meta = snap.data();
+  const chunks = await Promise.all(Array.from({ length: meta.chunkCount }, (_, i) =>
+    getDoc(doc(db, col, id, "chunks", String(i)))));
+  return { blob: new Blob(chunks.map(c => c.data().data.toUint8Array()), { type: meta.mimeType }), meta };
+}
+
+async function deleteChunkedFile(col, id) {
+  const snap = await getDoc(doc(db, col, id));
+  const count = snap.exists() ? (snap.data().chunkCount || 0) : 0;
+  await deleteDoc(doc(db, col, id)); // metadata first, so the item disappears from lists right away
+  for (let i = 0; i < count; i++) await deleteDoc(doc(db, col, id, "chunks", String(i)));
+}
+
+async function uploadSlides(talkId, file, onProgress) {
+  await saveChunkedFile("presentations", talkId, new Uint8Array(await file.arrayBuffer()),
+    { fileName: file.name, mimeType: file.type || "application/octet-stream" }, onProgress);
+}
+
+// Reassembles and saves a talk's slides; resolves false if none were uploaded yet.
+async function downloadSlides(talkId) {
+  const file = await loadChunkedFile("presentations", talkId);
+  if (!file) return false;
+  const url = URL.createObjectURL(file.blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = file.meta.fileName || "slides.pdf";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  return true;
+}
 
 // Check if current time is past midnight today (2026-08-04 00:00:00)
 function isPastMidnight() {
@@ -227,6 +333,7 @@ window.onclick = (e) => {
 // Applies the current isLoginMode to every part of the modal UI (title, tabs, button, switch text)
 function applyAuthMode() {
   errorMsg.style.display = "none";
+  if (forgotWrap) forgotWrap.style.display = isLoginMode ? "" : "none";
 
   if (authTabSignin) authTabSignin.classList.toggle("active", isLoginMode);
   if (authTabRegister) authTabRegister.classList.toggle("active", !isLoginMode);
@@ -261,6 +368,32 @@ window.setAuthMode = (loginMode, e) => {
   applyAuthMode();
 };
 
+// Password reset: Firebase emails a link to its own hosted reset page
+// (<project>.firebaseapp.com/__/auth/action) — plain web, no Firebase Dynamic Links involved.
+if (forgotLink) {
+  forgotLink.onclick = (e) => {
+    e.preventDefault();
+    const email = emailInput.value.trim();
+    if (!email) {
+      showError("Enter your email address above, then click \"Forgot your password?\" again.");
+      emailInput.focus();
+      return;
+    }
+    // Same wording whether or not the account exists, so the form can't be used to probe emails
+    const sentMsg = "If an account exists for " + email + ", a password reset link has been sent. Check your inbox (and spam folder).";
+    forgotLink.style.pointerEvents = "none";
+    sendPasswordResetEmail(auth, email)
+      .then(() => showInfo(sentMsg))
+      .catch((error) => {
+        if (error.code === "auth/user-not-found") showInfo(sentMsg);
+        else if (error.code === "auth/invalid-email") showError("Please enter a valid email address.");
+        else if (error.code === "auth/too-many-requests") showError("Too many requests. Please wait a few minutes and try again.");
+        else showError(error.message.replace("Firebase: ", ""));
+      })
+      .finally(() => { forgotLink.style.pointerEvents = ""; });
+  };
+}
+
 // Show/hide the password field's contents
 if (authTogglePw) {
   authTogglePw.onclick = () => {
@@ -280,8 +413,18 @@ function resetForm() {
 }
 
 function showError(msg) {
+  errorMsg.removeAttribute("style"); // drop any success colouring left by showInfo
   errorMsg.textContent = "⚠️ " + msg;
   errorMsg.style.display = "block";
+}
+
+// Same box as showError, recoloured green for success messages
+function showInfo(msg) {
+  showError(msg);
+  errorMsg.textContent = "✅ " + msg;
+  errorMsg.style.background = "rgba(16, 185, 129, 0.1)";
+  errorMsg.style.borderColor = "rgba(16, 185, 129, 0.3)";
+  errorMsg.style.color = "var(--accent-glow)";
 }
 
 // Handle Form Submission
@@ -382,6 +525,13 @@ function resetAccountForm() {
   if (accountAbstractUploadBtn) accountAbstractUploadBtn.disabled = true;
   if (accountAbstractStatus) accountAbstractStatus.textContent = "";
   if (accountAbstractDownload) { accountAbstractDownload.style.display = "none"; accountAbstractDownload.href = "#"; }
+  pendingPresentationFile = null;
+  currentSpeakerTalkId = null;
+  if (accountPresentationCard) accountPresentationCard.style.display = "none";
+  if (accountPresentationInput) accountPresentationInput.value = "";
+  if (accountPresentationUploadBtn) accountPresentationUploadBtn.disabled = true;
+  if (accountPresentationStatus) accountPresentationStatus.textContent = "";
+  if (accountPresentationDownload) accountPresentationDownload.style.display = "none";
   if (accountDeletePassword) accountDeletePassword.value = "";
   if (accountDeleteStatus) { accountDeleteStatus.textContent = ""; accountDeleteStatus.style.display = "none"; }
   if (accountDangerZone) accountDangerZone.style.display = "none";
@@ -400,13 +550,14 @@ function resetAccountForm() {
   [subsDetailName, subsDetailEmail, subsDetailPosition, subsDetailInstitution, subsDetailCountry,
    subsDetailPhone, subsDetailArrival, subsDetailDietary, subsDetailTrip, subsDetailInvoice,
    subsDetailBillInstitution, subsDetailPersonalVat, subsDetailBio,
-   subsDetailNotes, subsDetailUpdated, subsLetterStatus, subsAbstractStatus].forEach(el => { if (el) el.textContent = ""; });
+   subsDetailNotes, subsDetailUpdated, subsLetterStatus, subsAbstractStatus, subsSpeakerStatus].forEach(el => { if (el) el.textContent = ""; });
   if (subsDetailPhoto) { subsDetailPhoto.style.display = "none"; subsDetailPhoto.src = ""; }
   if (subsDetailPhotoPlaceholder) subsDetailPhotoPlaceholder.style.display = "flex";
   if (subsLetterInput) subsLetterInput.value = "";
   if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
   if (subsLetterCurrentLink) { subsLetterCurrentLink.style.display = "none"; subsLetterCurrentLink.href = "#"; }
   if (subsAbstractDownload) { subsAbstractDownload.style.display = "none"; subsAbstractDownload.href = "#"; }
+  if (subsSpeakerSelect) subsSpeakerSelect.value = "";
 
   // If the organizer was on the Subscribers tab, don't leave them staring at an
   // empty admin-only page after logout — send them back to the public Overview tab.
@@ -551,6 +702,45 @@ function loadAbstract(user) {
   });
 }
 
+// Title of a speaker card in the Programme, e.g. talkTitle("talk-marco")
+function talkTitle(talkId) {
+  const t = document.querySelector(`#${CSS.escape(talkId)} .contrib-title`);
+  return t ? t.textContent.trim() : talkId;
+}
+
+// Speakers only: show the slides card if the organizer assigned this account a talk
+// (speakers/{uid}). Always auth.currentUser's own uid, never a passed-in one.
+function loadPresentation(user) {
+  currentSpeakerTalkId = null;
+  if (!accountPresentationCard || !accountPresentationStatus || !accountPresentationDownload) return;
+  accountPresentationCard.style.display = "none";
+
+  getDoc(doc(db, "speakers", user.uid)).then((snap) => {
+    const talkId = snap.exists() ? snap.data().talkId : null;
+    if (!talkId) return;
+    currentSpeakerTalkId = talkId;
+    if (accountPresentationTalk) accountPresentationTalk.textContent = talkTitle(talkId);
+    accountPresentationCard.style.display = "";
+    accountPresentationStatus.textContent = "Checking…";
+    accountPresentationDownload.style.display = "none";
+    return getDoc(doc(db, "presentations", talkId)).then((p) => {
+      if (p.exists() && p.data().chunkCount) {
+        accountPresentationStatus.textContent = `Current slides: ${p.data().fileName || "slides"} — uploading a new file will replace them.`;
+        accountPresentationDownload.onclick = (e) => {
+          e.preventDefault();
+          downloadSlides(talkId).catch((error) => console.error("Failed to download slides:", error));
+        };
+        accountPresentationDownload.style.display = "inline-block";
+      } else {
+        accountPresentationStatus.textContent = "No slides uploaded yet.";
+      }
+    });
+  }).catch((error) => {
+    console.error("Failed to check speaker slides:", error);
+    accountPresentationStatus.textContent = "Could not check your slides right now.";
+  });
+}
+
 if (accountAbstractInput) {
   accountAbstractInput.onchange = () => {
     const file = accountAbstractInput.files && accountAbstractInput.files[0];
@@ -613,10 +803,52 @@ if (accountAbstractUploadBtn) {
   };
 }
 
+if (accountPresentationInput) {
+  accountPresentationInput.onchange = () => {
+    const file = accountPresentationInput.files && accountPresentationInput.files[0];
+    pendingPresentationFile = null;
+    if (accountPresentationUploadBtn) accountPresentationUploadBtn.disabled = true;
+    if (!file) return;
+
+    const error = slidesFileError(file);
+    if (error) {
+      accountPresentationStatus.textContent = error;
+      accountPresentationInput.value = "";
+      return;
+    }
+    pendingPresentationFile = file;
+    accountPresentationStatus.textContent = `Ready to upload: ${file.name}`;
+    if (accountPresentationUploadBtn) accountPresentationUploadBtn.disabled = false;
+  };
+}
+
+if (accountPresentationUploadBtn) {
+  accountPresentationUploadBtn.onclick = async () => {
+    const user = auth.currentUser;
+    if (!user || !pendingPresentationFile || !currentSpeakerTalkId) return;
+
+    accountPresentationUploadBtn.disabled = true;
+    accountPresentationStatus.textContent = "Uploading…";
+
+    try {
+      await uploadSlides(currentSpeakerTalkId, pendingPresentationFile,
+        (pct) => { accountPresentationStatus.textContent = `Uploading… ${pct}%`; });
+      pendingPresentationFile = null;
+      if (accountPresentationInput) accountPresentationInput.value = "";
+      loadPresentation(user);
+    } catch (error) {
+      console.error("Failed to upload presentation:", error);
+      accountPresentationStatus.textContent = "Could not upload your presentation: " + error.message;
+      accountPresentationUploadBtn.disabled = false;
+    }
+  };
+}
+
 function loadAccountData(user) {
   if (accountEmailField) accountEmailField.value = user.email || "";
   loadConfirmationLetter(user);
   loadAbstract(user);
+  loadPresentation(user);
   updateDeleteZoneVisibility();
 
   const userDocRef = doc(db, "users", user.uid);
@@ -788,8 +1020,9 @@ if (accountDeleteBtn) {
       const credential = EmailAuthProvider.credential(user.email, password);
       await reauthenticateWithCredential(user, credential);
       await deleteDoc(doc(db, "users", user.uid));
-      // Unlike letters/{uid} (admin-write-only), abstracts/{uid} is self-writable —
-      // so this is the one piece of the deletion audit we CAN actually clean up here.
+      // Unlike letters/{uid} (admin-write-only), abstracts/{uid} is self-writable — so it's
+      // the piece of the deletion audit we CAN actually clean up here. Talk slides
+      // (presentations/{talkId}) belong to the talk, not the account, so they stay.
       await deleteDoc(doc(db, "abstracts", user.uid));
       await deleteUser(user);
       // deleteUser signs the user out automatically; onAuthStateChanged will reset the UI.
@@ -832,6 +1065,11 @@ function showSubscribersList() {
 function checkAdminStatus(user) {
   getDoc(doc(db, "admins", user.uid)).then((snap) => {
     isAdmin = snap.exists();
+    if (isAdmin) {
+      renderTalkMaterials(true); // adds the organizer's per-talk upload links
+      if (galleryAdmin) galleryAdmin.style.display = "";
+      if (isSectionActive("images")) loadGallery(); // re-render with delete buttons
+    }
     if (navSubscribersItem) navSubscribersItem.style.display = isAdmin ? "block" : "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = isAdmin ? "flex" : "none";
     updateDeleteZoneVisibility();
@@ -942,6 +1180,7 @@ function viewSubscriberDetail(uid, data) {
   if (subsLetterUploadBtn) subsLetterUploadBtn.disabled = true;
   checkExistingLetter(uid);
   checkSubscriberAbstract(uid);
+  checkSubscriberSpeaker(uid);
 
   if (subscribersListView) subscribersListView.style.display = "none";
   if (subscriberDetailView) subscriberDetailView.style.display = "block";
@@ -971,6 +1210,118 @@ function checkSubscriberAbstract(uid) {
     console.error("Failed to check subscriber abstract:", error);
     subsAbstractStatus.textContent = "Could not check for an abstract.";
   });
+}
+
+// Speaker assignment (organizer-only write, per firestore.rules): picking a talk here lets
+// this account upload slides for it from their My Account page.
+if (subsSpeakerSelect) {
+  document.querySelectorAll(".contribution-card[id]").forEach((card) => {
+    const speaker = card.querySelector(".contrib-speaker");
+    const opt = document.createElement("option");
+    opt.value = card.id;
+    opt.textContent = talkTitle(card.id) + (speaker ? " — " + speaker.textContent.replace("👤", "").split("(")[0].trim() : "");
+    subsSpeakerSelect.appendChild(opt);
+  });
+
+  subsSpeakerSelect.onchange = async () => {
+    const uid = currentSubscriberUid;
+    const talkId = subsSpeakerSelect.value;
+    if (!uid || !isAdmin) return;
+    subsSpeakerSelect.disabled = true;
+    subsSpeakerStatus.textContent = "Saving…";
+    try {
+      if (talkId) await setDoc(doc(db, "speakers", uid), { talkId, assignedAt: new Date().toISOString() });
+      else await deleteDoc(doc(db, "speakers", uid));
+      subsSpeakerStatus.textContent = talkId ? "✅ Speaker — they can now upload slides from My Account." : "✅ No longer a speaker.";
+    } catch (error) {
+      console.error("Failed to save speaker assignment:", error);
+      subsSpeakerStatus.textContent = "Could not save: " + error.message;
+    } finally {
+      subsSpeakerSelect.disabled = false;
+    }
+  };
+}
+
+function checkSubscriberSpeaker(uid) {
+  if (!subsSpeakerSelect || !subsSpeakerStatus) return;
+  subsSpeakerSelect.value = "";
+  subsSpeakerStatus.textContent = "Checking…";
+  getDoc(doc(db, "speakers", uid)).then((snap) => {
+    if (uid !== currentSubscriberUid) return; // admin already moved on to another subscriber
+    const talkId = snap.exists() ? snap.data().talkId : "";
+    subsSpeakerSelect.value = talkId || "";
+    subsSpeakerStatus.textContent = talkId ? "Speaker — can upload slides for:" : "Not a speaker.";
+  }).catch((error) => {
+    console.error("Failed to check speaker assignment:", error);
+    subsSpeakerStatus.textContent = "Could not check speaker status.";
+  });
+}
+
+// Talk slides are each speaker card's "restricted material": signed-in (registered) users get a
+// download link, everyone else sees the lock. Fetched on click, so nobody downloads every deck up front.
+function renderTalkMaterials(signedIn) {
+  document.querySelectorAll(".contribution-card[id] .contrib-material-status").forEach((el) => {
+    const talkId = el.closest(".contribution-card").id;
+    el.textContent = "";
+    if (!signedIn) {
+      el.textContent = "🔒 Material locked (Registration required)";
+      el.style.color = "var(--accent-rose)";
+      return;
+    }
+    el.style.color = "var(--text-muted)";
+    const link = document.createElement("a");
+    link.href = "#";
+    link.textContent = "⬇️ Download slides";
+    link.onclick = async (e) => {
+      e.preventDefault();
+      link.textContent = "Loading…";
+      try {
+        if (await downloadSlides(talkId)) {
+          link.textContent = "⬇️ Download slides";
+        } else {
+          link.replaceWith("🕒 Slides not uploaded yet — check back later.");
+        }
+      } catch (error) {
+        console.error("Failed to load talk slides:", error);
+        link.textContent = "Could not load slides — click to retry";
+      }
+    };
+    el.appendChild(link);
+    if (isAdmin) el.append(" · ", organizerSlidesUpload(talkId));
+  });
+}
+
+// Organizer shortcut: upload/replace any talk's slides straight from its card
+// (firestore.rules lets admins write every presentations/{talkId}).
+function organizerSlidesUpload(talkId) {
+  const wrap = document.createElement("span");
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = ALLOWED_PRESENTATION_EXTENSIONS.join(",");
+  input.style.display = "none";
+  const up = document.createElement("a");
+  up.href = "#";
+  up.textContent = "⬆️ Upload slides (organizer)";
+  up.onclick = (e) => { e.preventDefault(); input.click(); };
+  input.onchange = () => {
+    const file = input.files && input.files[0];
+    input.value = "";
+    if (!file) return;
+    const error = slidesFileError(file);
+    if (error) {
+      up.textContent = "⚠️ " + error;
+      return;
+    }
+    up.textContent = "Uploading…";
+    uploadSlides(talkId, file, (pct) => { up.textContent = `Uploading… ${pct}%`; })
+      .then(() => { up.textContent = `✅ Uploaded ${file.name} — click to replace`; })
+      .catch((error) => {
+        console.error("Failed to upload talk slides:", error);
+        up.textContent = "⚠️ Upload failed — try again";
+      });
+  };
+  wrap.append(up, input);
+  return wrap;
 }
 
 // Shows whether a confirmation letter already exists for the subscriber currently being
@@ -1081,6 +1432,203 @@ if (mobNavSubscribersLink) {
   });
 }
 
+// ===== Images tab (workshop photo gallery) =====
+//
+// Signed-in users only (firestore.rules: gallery/* readable by any signed-in user, writable by
+// the organizer). The organizer uploads from the tab itself; each photo is re-encoded in the
+// browser to max 2560 px on the long edge at JPEG quality 0.92 — visually the same on any
+// screen, typically 0.5–1.5 MB instead of 5–15 MB — and also strips EXIF data such as GPS
+// location. A ~480 px thumbnail lives in the metadata doc so the grid never downloads full photos.
+// ponytail: loads every thumbnail at once — fine for a few hundred photos; paginate with
+// query()/limit() beyond that.
+const GALLERY_MAX_EDGE = 2560;
+const GALLERY_THUMB_EDGE = 480;
+
+function isSectionActive(id) {
+  const section = document.getElementById(id);
+  return !!section && section.classList.contains("active");
+}
+
+function encodeScaled(bitmap, maxEdge, quality) {
+  const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#fff"; // transparent PNGs would otherwise turn black in JPEG
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  return new Promise((resolve, reject) =>
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("Could not encode image"))), "image/jpeg", quality));
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function loadGallery() {
+  if (!galleryGrid || !galleryStatus) return;
+  galleryGrid.textContent = "";
+  galleryStatus.style.display = "";
+  if (galleryAdmin) galleryAdmin.style.display = isAdmin ? "" : "none";
+  if (!auth.currentUser) {
+    galleryStatus.textContent = "Soon — the workshop photos will be visible here to registered participants after login.";
+    return;
+  }
+  galleryStatus.textContent = "Loading…";
+  try {
+    const snap = await getDocs(collection(db, "gallery"));
+    const items = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .filter((item) => item.chunkCount)
+      .sort((x, y) => (x.uploadedAt || "").localeCompare(y.uploadedAt || ""));
+    galleryGrid.textContent = "";
+    galleryStatus.textContent = "Soon";
+    galleryStatus.style.display = items.length ? "none" : "";
+    items.forEach((item) => galleryGrid.appendChild(galleryTile(item)));
+  } catch (error) {
+    console.error("Failed to load gallery:", error);
+    galleryStatus.textContent = "Could not load the images right now.";
+  }
+}
+
+function galleryTile(item) {
+  const tile = document.createElement("div");
+  tile.style.position = "relative";
+  const open = document.createElement("button");
+  open.type = "button";
+  open.setAttribute("aria-label", "Open photo " + (item.fileName || ""));
+  open.style.cssText = "padding:0; border:none; background:none; cursor:zoom-in; width:100%; display:block;";
+  const img = document.createElement("img");
+  img.src = item.thumbDataUrl;
+  img.alt = "Workshop photo";
+  img.loading = "lazy";
+  img.style.cssText = "width:100%; aspect-ratio:1; object-fit:cover; border-radius:8px; display:block;";
+  open.appendChild(img);
+  open.onclick = () => openGalleryImage(item);
+  tile.appendChild(open);
+
+  if (isAdmin) {
+    const del = document.createElement("button");
+    del.type = "button";
+    del.textContent = "🗑";
+    del.title = "Delete this photo";
+    del.setAttribute("aria-label", "Delete this photo");
+    del.style.cssText = "position:absolute; top:6px; right:6px; border:none; border-radius:6px; background:rgba(0,0,0,0.6); color:#fff; cursor:pointer; padding:4px 7px;";
+    del.onclick = async () => {
+      if (!window.confirm("Delete this photo for everyone?")) return;
+      del.disabled = true;
+      try {
+        await deleteChunkedFile("gallery", item.id);
+        tile.remove();
+      } catch (error) {
+        console.error("Failed to delete photo:", error);
+        del.disabled = false;
+        alert("Could not delete the photo: " + error.message);
+      }
+    };
+    tile.appendChild(del);
+  }
+  return tile;
+}
+
+// Full-size viewer: shows the thumbnail at once, swaps in the full photo when loaded,
+// and offers a proper download button (right-click saving is disabled site-wide).
+async function openGalleryImage(item) {
+  const overlay = document.createElement("div");
+  overlay.setAttribute("role", "dialog");
+  overlay.setAttribute("aria-label", "Photo viewer");
+  overlay.style.cssText = "position:fixed; inset:0; z-index:10000; background:rgba(0,0,0,0.92); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:16px;";
+  const big = document.createElement("img");
+  big.src = item.thumbDataUrl;
+  big.alt = "Workshop photo";
+  big.style.cssText = "max-width:100%; max-height:82vh; object-fit:contain; border-radius:6px;";
+  const bar = document.createElement("div");
+  bar.style.cssText = "display:flex; gap:10px; flex-wrap:wrap; justify-content:center;";
+  const download = document.createElement("a");
+  download.className = "register-btn";
+  download.textContent = "Loading full size…";
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "register-btn";
+  close.style.border = "none";
+  close.style.cursor = "pointer";
+  close.textContent = "✕ Close";
+  bar.append(download, close);
+  overlay.append(big, bar);
+
+  let url = null;
+  const onKey = (e) => { if (e.key === "Escape") shut(); };
+  const shut = () => {
+    overlay.remove();
+    document.removeEventListener("keydown", onKey);
+    if (url) URL.revokeObjectURL(url);
+  };
+  overlay.onclick = (e) => { if (e.target === overlay) shut(); };
+  close.onclick = shut;
+  document.addEventListener("keydown", onKey);
+  document.body.appendChild(overlay);
+  close.focus();
+
+  try {
+    const file = await loadChunkedFile("gallery", item.id);
+    if (!overlay.isConnected) return;
+    if (!file) { download.textContent = "Photo no longer available"; return; }
+    url = URL.createObjectURL(file.blob);
+    big.src = url;
+    download.href = url;
+    download.download = file.meta.fileName || "photo.jpg";
+    download.textContent = "⬇️ Download full size";
+  } catch (error) {
+    console.error("Failed to load photo:", error);
+    download.textContent = "Could not load the full-size photo";
+  }
+}
+
+if (galleryInput) {
+  galleryInput.onchange = async () => {
+    const files = Array.from(galleryInput.files || []);
+    galleryInput.value = "";
+    if (!files.length || !isAdmin) return;
+    let done = 0;
+    const failed = [];
+    for (const file of files) {
+      galleryUploadStatus.textContent = `Uploading ${done + failed.length + 1} of ${files.length}…`;
+      try {
+        const bitmap = await createImageBitmap(file);
+        let full, thumb;
+        try {
+          full = await encodeScaled(bitmap, GALLERY_MAX_EDGE, 0.92);
+          thumb = await encodeScaled(bitmap, GALLERY_THUMB_EDGE, 0.8);
+        } finally {
+          bitmap.close();
+        }
+        await saveChunkedFile("gallery", doc(collection(db, "gallery")).id, new Uint8Array(await full.arrayBuffer()), {
+          fileName: file.name.replace(/\.[^.]+$/, "") + ".jpg",
+          mimeType: "image/jpeg",
+          thumbDataUrl: await blobToDataUrl(thumb)
+        });
+        done++;
+      } catch (error) {
+        console.error("Failed to upload photo", file.name, error);
+        failed.push(file.name);
+      }
+    }
+    galleryUploadStatus.textContent = `✅ ${done} uploaded` +
+      (failed.length ? ` · ⚠️ ${failed.length} failed (${failed.join(", ")}) — iPhone HEIC photos must be exported as JPEG first` : "");
+    loadGallery();
+  };
+}
+
+document.querySelectorAll('[data-target="images"]').forEach((link) =>
+  link.addEventListener("click", () => loadGallery()));
+
 // Listen to auth state changes
 onAuthStateChanged(auth, (user) => {
   if (user) {
@@ -1097,6 +1645,8 @@ onAuthStateChanged(auth, (user) => {
     }
 
     checkAdminStatus(user);
+    renderTalkMaterials(true);
+    if (isSectionActive("images")) loadGallery();
 
   } else {
     // User is signed out
@@ -1110,5 +1660,7 @@ onAuthStateChanged(auth, (user) => {
       accountUnlocked.style.display = "none";
       resetAccountForm();
     }
+    renderTalkMaterials(false);
+    loadGallery(); // back to the "Soon / log in" state
   }
 });

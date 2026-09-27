@@ -231,3 +231,31 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
 });
+
+
+// ===== Light copy deterrents =====
+// ponytail: deterrents only — view-source, dev tools, screenshots or curl bypass all of this.
+// Text selection/copy is deliberately NOT blocked: visitors must still be able to copy emails,
+// addresses and form fields. Upgrade path, if ever needed: legal (copyright notice + takedowns), not JS.
+(() => {
+  const inField = (el) => el && el.closest && el.closest("input, textarea, select, [contenteditable]");
+
+  // No right-click menu on the page, except on links and form fields (open-in-new-tab, paste, spellcheck keep working)
+  document.addEventListener("contextmenu", (e) => {
+    if (!inField(e.target) && !(e.target.closest && e.target.closest("a"))) e.preventDefault();
+  });
+
+  // No dragging images out of the page
+  document.addEventListener("dragstart", (e) => {
+    if (e.target.tagName === "IMG") e.preventDefault();
+  });
+
+  // Longer copied passages get a source + copyright line; short copies (an email, an address) stay untouched
+  document.addEventListener("copy", (e) => {
+    const text = String(window.getSelection() || "");
+    if (text.length < 200 || inField(document.activeElement) || !e.clipboardData) return;
+    e.clipboardData.setData("text/plain", text + "\n\n— Source: " + location.href.split("#")[0] +
+      "\n© 2026 Nanobody Discovery Summer School. All rights reserved.");
+    e.preventDefault();
+  });
+})();
