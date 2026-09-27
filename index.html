@@ -79,6 +79,7 @@
           <li id="nav-subscribers-item" style="display:none;"><a href="#" class="nav-link" id="nav-subscribers-link" data-target="subscribers" data-i18n="nav_subscribers">🛡️ Subscribers (Organizer)</a></li>
           <li><a href="#" class="nav-link" data-target="social" data-i18n="nav_evening">Social Activities</a></li>
           <li><a href="#" class="nav-link" data-target="images" data-i18n="nav_images">Images</a></li>
+          <li><a href="#" class="nav-link" data-target="participants" data-i18n="nav_participants">Participants</a></li>
           <li><a href="#" class="nav-link" data-target="faqs" data-i18n="nav_faqs">FAQs</a></li>
           <li><a href="#" class="nav-link" data-target="about" data-i18n="nav_about">About Us</a></li>
         </ul>
@@ -465,7 +466,6 @@
         </div>
 
         <h3 id="participants-abstracts" style="margin-top:32px;">📋 Participants Abstracts</h3>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">Click on an entry to expand it. Presented Thursday 24/09, from 11:30.</p>
 
         <div id="talk-bor" class="programme-item">
           <div class="programme-item-header">Bor Krajnik — De novo designed nanobodies for intracellular protein perturbation<span>▾</span></div>
@@ -696,7 +696,7 @@
             <textarea id="account-notes" rows="3" maxlength="800" placeholder="Anything else you'd like the organisers to know"></textarea>
           </div>
 
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;" data-i18n="acc_privacy_note">🔒 This information is stored in your account and used only by the organisers for the Summer School.</p>
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;" data-i18n="acc_privacy_note">🔒 This information is stored in your account and used only by the organisers for the Summer School — except your name, email, phone and affiliation, which other logged-in participants can see in the Participants tab.</p>
 
           <div id="account-save-status" style="font-size: 13px; margin-bottom: 10px; display: none;"></div>
 
@@ -854,6 +854,13 @@
         <div id="gallery-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px;"></div>
       </section>
 
+      <section id="participants" class="page-section">
+        <h3>👥 Participants</h3>
+        <p style="font-size: 13px; color: var(--text-muted);">Contact details of everyone registered for the Summer School — visible to logged-in participants only.</p>
+        <p id="participants-status" style="font-size: 16px; color: var(--text-muted);">🔒 Log in to see the other participants' contact details.</p>
+        <div id="participants-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;"></div>
+      </section>
+
       <section id="faqs" class="page-section">
 
 
@@ -963,6 +970,7 @@
     <a href="#" class="mob-nav-link" id="mob-nav-subscribers-link" data-target="subscribers" style="display:none;"><span class="nav-icon">🛡️</span>Subscribers</a>
     <a href="#" class="mob-nav-link" data-target="social"><span class="nav-icon">🎉</span>Social</a>
     <a href="#" class="mob-nav-link" data-target="images"><span class="nav-icon">📷</span>Images</a>
+    <a href="#" class="mob-nav-link" data-target="participants"><span class="nav-icon">👥</span>People</a>
     <a href="#" class="mob-nav-link" data-target="faqs"><span class="nav-icon">❓</span>FAQs</a>
     <a href="#" class="mob-nav-link" data-target="about"><span class="nav-icon">ℹ️</span>About</a>
   </nav>
@@ -1016,8 +1024,8 @@
   </div>
 
   <script src="script.js?v=17"></script>
-  <script src="lang.js?v=16"></script>
-  <script type="module" src="auth.js?v=29"></script>
+  <script src="lang.js?v=17"></script>
+  <script type="module" src="auth.js?v=30"></script>
 </body>
 
 </html>

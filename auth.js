@@ -133,6 +133,8 @@ const subsAbstractStatus = document.getElementById("subs-abstract-status");
 const subsAbstractDownload = document.getElementById("subs-abstract-download");
 const subsSpeakerSelect = document.getElementById("subs-speaker-select");
 const galleryStatus = document.getElementById("gallery-status");
+const participantsStatus = document.getElementById("participants-status");
+const participantsList = document.getElementById("participants-list");
 const galleryAdmin = document.getElementById("gallery-admin");
 const galleryInput = document.getElementById("gallery-input");
 const galleryUploadStatus = document.getElementById("gallery-upload-status");
@@ -954,6 +956,7 @@ if (accountSaveBtn) {
       }
 
       await setDoc(doc(db, "users", user.uid), profileData, { merge: true });
+      await setDoc(doc(db, "directory", user.uid), directoryEntry(profileData));
       showAccountStatus("✅ Saved!", false);
     } catch (error) {
       console.error("Failed to save account data:", error);
@@ -1024,6 +1027,7 @@ if (accountDeleteBtn) {
       // the piece of the deletion audit we CAN actually clean up here. Talk slides
       // (presentations/{talkId}) belong to the talk, not the account, so they stay.
       await deleteDoc(doc(db, "abstracts", user.uid));
+      await deleteDoc(doc(db, "directory", user.uid));
       await deleteUser(user);
       // deleteUser signs the user out automatically; onAuthStateChanged will reset the UI.
       alert("Your account has been deleted.");
@@ -1098,6 +1102,7 @@ function loadSubscribersList() {
     const rows = [];
     snapshot.forEach((docSnap) => rows.push({ uid: docSnap.id, data: docSnap.data() }));
     rows.sort((a, b) => (a.data.fullName || a.data.email || "").localeCompare(b.data.fullName || b.data.email || ""));
+    syncDirectory(rows);
 
     rows.forEach(({ uid, data }) => {
       const row = document.createElement("button");
@@ -1432,6 +1437,93 @@ if (mobNavSubscribersLink) {
   });
 }
 
+// ===== Participants tab (contact directory) =====
+//
+// users/{uid} holds private data (invoice, VAT, dietary, notes…) and Firestore can't hide single
+// fields, so the shareable part lives in its own collection: directory/{uid} = name, email, phone,
+// affiliation only. Any signed-in user can read it; firestore.rules only lets the owner or the
+// organizer write it, and only with exactly these fields.
+function directoryEntry(data) {
+  return {
+    fullName: data.fullName || "",
+    email: data.email || "",
+    phone: data.phone || "",
+    institution: data.institution || "",
+    updatedAt: new Date().toISOString()
+  };
+}
+
+// Organizer-side backfill: every time the Subscribers list loads, mirror each profile's
+// shareable fields into directory/ and drop entries whose profile no longer exists.
+async function syncDirectory(rows) {
+  if (!isAdmin) return;
+  try {
+    const existing = await getDocs(collection(db, "directory"));
+    const live = new Set(rows.map((r) => r.uid));
+    await Promise.all([
+      ...rows.map(({ uid, data }) => setDoc(doc(db, "directory", uid), directoryEntry(data))),
+      ...existing.docs.filter((d) => !live.has(d.id)).map((d) => deleteDoc(d.ref))
+    ]);
+  } catch (error) {
+    console.error("Failed to sync participant directory:", error);
+  }
+}
+
+async function loadParticipants() {
+  if (!participantsList || !participantsStatus) return;
+  participantsList.textContent = "";
+  participantsStatus.style.display = "";
+  if (!auth.currentUser) {
+    participantsStatus.textContent = "🔒 Log in to see the other participants' contact details.";
+    return;
+  }
+  participantsStatus.textContent = "Loading…";
+  try {
+    const snap = await getDocs(collection(db, "directory"));
+    const people = snap.docs.map((d) => d.data())
+      .filter((p) => p.fullName || p.email)
+      .sort((x, y) => (x.fullName || x.email).localeCompare(y.fullName || y.email));
+    participantsStatus.textContent = people.length ? "" : "No participants listed yet.";
+    participantsStatus.style.display = people.length ? "none" : "";
+    people.forEach((p) => participantsList.appendChild(participantCard(p)));
+  } catch (error) {
+    console.error("Failed to load participants:", error);
+    participantsStatus.textContent = "Could not load the participant list right now.";
+  }
+}
+
+function participantCard(p) {
+  const card = document.createElement("div");
+  card.className = "doc-card";
+  card.style.cssText = "margin: 0; display: block;";
+  const name = document.createElement("div");
+  name.className = "doc-card-title";
+  name.textContent = p.fullName || p.email;
+  card.appendChild(name);
+  const line = (icon, text, href) => {
+    if (!text) return;
+    const row = document.createElement("div");
+    row.style.cssText = "font-size: 13px; margin-top: 4px; word-break: break-word;";
+    row.append(icon + " ");
+    if (href) {
+      const a = document.createElement("a");
+      a.href = href;
+      a.textContent = text;
+      row.appendChild(a);
+    } else {
+      row.append(text);
+    }
+    card.appendChild(row);
+  };
+  line("🏛️", p.institution);
+  line("✉️", p.email, "mailto:" + p.email);
+  line("📞", p.phone, "tel:" + p.phone.replace(/[^+\d]/g, ""));
+  return card;
+}
+
+document.querySelectorAll('[data-target="participants"]').forEach((link) =>
+  link.addEventListener("click", () => loadParticipants()));
+
 // ===== Images tab (workshop photo gallery) =====
 //
 // Signed-in users only (firestore.rules: gallery/* readable by any signed-in user, writable by
@@ -1647,6 +1739,7 @@ onAuthStateChanged(auth, (user) => {
     checkAdminStatus(user);
     renderTalkMaterials(true);
     if (isSectionActive("images")) loadGallery();
+    if (isSectionActive("participants")) loadParticipants();
 
   } else {
     // User is signed out
@@ -1662,5 +1755,6 @@ onAuthStateChanged(auth, (user) => {
     }
     renderTalkMaterials(false);
     loadGallery(); // back to the "Soon / log in" state
+    loadParticipants(); // back to the "log in" state
   }
 });

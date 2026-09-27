@@ -47,6 +47,27 @@ service cloud.firestore {
         allow write: if canUploadSlides(talkId);
       }
     }
+    // directory/{uid} — the only profile data other participants can see: name, email,
+    // phone and affiliation. Readable by any signed-in user; written by the owner or the
+    // organizer, with exactly these (short, text) fields and nothing else.
+    function isDirectoryEntry(d) {
+      return d.keys().hasOnly(['fullName', 'email', 'phone', 'institution', 'updatedAt']) &&
+             d.fullName is string && d.fullName.size() < 200 &&
+             d.email is string && d.email.size() < 200 &&
+             d.phone is string && d.phone.size() < 60 &&
+             d.institution is string && d.institution.size() < 300 &&
+             d.updatedAt is string && d.updatedAt.size() < 40;
+    }
+    match /directory/{userId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null &&
+                               (request.auth.uid == userId ||
+                                exists(/databases/$(database)/documents/admins/$(request.auth.uid))) &&
+                               isDirectoryEntry(request.resource.data);
+      allow delete: if request.auth != null &&
+                       (request.auth.uid == userId ||
+                        exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
     // gallery/{imageId} (+ its chunks) — workshop photos: any signed-in user can view,
     // only the organizer can add or delete
     match /gallery/{imageId} {
