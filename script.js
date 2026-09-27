@@ -80,35 +80,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ===== Countdown Timer =====
-  const eventDate = new Date('2026-09-22T15:00:00+02:00').getTime();
-  
-  function updateCountdown() {
-    const now = Date.now();
-    const diff = eventDate - now;
-    
-    if (diff <= 0) {
-      document.getElementById('cd-days').textContent = '0';
-      document.getElementById('cd-hours').textContent = '0';
-      document.getElementById('cd-mins').textContent = '0';
-      document.getElementById('cd-secs').textContent = '0';
-      return;
-    }
-    
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const secs = Math.floor((diff % (1000 * 60)) / 1000);
-    
-    document.getElementById('cd-days').textContent = days;
-    document.getElementById('cd-hours').textContent = String(hours).padStart(2, '0');
-    document.getElementById('cd-mins').textContent = String(mins).padStart(2, '0');
-    document.getElementById('cd-secs').textContent = String(secs).padStart(2, '0');
-  }
-  
-  updateCountdown();
-  setInterval(updateCountdown, 1000);
-
   // ===== Molecular Particle Animation =====
   const canvas = document.getElementById('particles-canvas');
   if (canvas) {
