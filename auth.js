@@ -1851,6 +1851,8 @@ onAuthStateChanged(auth, (user) => {
 // refused on any device. Nothing on the site links a marker to an answer.
 // ponytail: both documents share one save time, so someone querying Firestore's internal
 // timestamps could still pair them; that's the price of enforcing one answer per login.
+// Organizers can fill the form as often as they like to test it: their answers go to
+// feedbackTest/ instead and never count in the results (the rules refuse them in feedback/).
 // The question ids and allowed options below must stay in sync with isValidFeedback() there.
 const feedbackHeader = document.getElementById("feedback-header");
 const feedbackLink = document.getElementById("feedback-link");
@@ -1978,7 +1980,7 @@ async function refreshFeedbackAccess(redirect = true) {
   }
   const show = !!user && (!feedbackSent || isAdmin);
   document.querySelectorAll('[data-target="feedback"]').forEach((a) => { (a.closest("li") || a).style.display = show ? "" : "none"; });
-  if (feedbackHeader) feedbackHeader.style.display = show && !feedbackSent ? "" : "none";
+  if (feedbackHeader) feedbackHeader.style.display = show && (!feedbackSent || isAdmin) ? "" : "none";
   if (!show && redirect && isSectionActive("feedback")) goToSection("overview");
   if (show && isSectionActive("feedback")) loadFeedback();
 }
@@ -1992,7 +1994,12 @@ async function loadFeedback() {
     feedbackStatus.textContent = "🔒 Log in to give feedback.";
     return;
   }
-  if (feedbackSent) {
+  if (isAdmin) {
+    feedbackStatus.style.display = "";
+    feedbackStatus.textContent = "🧪 Test mode (organizer): you can send the form as often as you like; your answers are kept apart and are not counted in the results below.";
+    if (!feedbackForm.childElementCount) buildFeedbackForm();
+    feedbackForm.style.display = "";
+  } else if (feedbackSent) {
     feedbackStatus.style.display = "";
     feedbackStatus.textContent = "✅ Thank you — your feedback has been received. Each account can answer once.";
   } else {
@@ -2018,6 +2025,13 @@ if (feedbackForm) {
     button.disabled = true;
     button.textContent = "Sending…";
     try {
+      if (isAdmin) {
+        await setDoc(doc(collection(db, "feedbackTest")), data); // never counted
+        feedbackForm.reset();
+        feedbackStatus.textContent = "🧪 Test answer saved (not counted in the results). You can send the form again.";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
       const batch = writeBatch(db);
       batch.set(doc(db, "feedbackSent", auth.currentUser.uid), {}); // "this account has answered"
       batch.set(doc(collection(db, "feedback")), data);              // the answers: random id, no uid

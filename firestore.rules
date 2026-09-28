@@ -137,7 +137,7 @@ service cloud.firestore {
     // account's (empty) feedbackSent/{uid} marker in the same batch, and a marker can never be
     // created twice, edited or removed by its owner.
     match /feedback/{id} {
-      allow create: if signedIn() && isValidFeedback(request.resource.data) &&
+      allow create: if signedIn() && !isAdmin() && isValidFeedback(request.resource.data) &&
                        !exists(/databases/$(database)/documents/feedbackSent/$(request.auth.uid)) &&
                        existsAfter(/databases/$(database)/documents/feedbackSent/$(request.auth.uid));
       allow read, delete: if isAdmin();
@@ -148,6 +148,12 @@ service cloud.firestore {
       allow create: if isSelf(userId) && request.resource.data.keys().size() == 0;
       allow update: if false;
       allow delete: if isAdmin(); // lets the organizer allow someone to answer again
+    }
+    // feedbackTest/{id} — the organizer's own test answers: unlimited, never mixed with real ones.
+    match /feedbackTest/{id} {
+      allow create: if isAdmin() && isValidFeedback(request.resource.data);
+      allow read, delete: if isAdmin();
+      allow update: if false;
     }
 
     // gallery/{imageId} (+ its chunks) — workshop photos: any signed-in user can view,

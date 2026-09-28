@@ -74,6 +74,9 @@ await t("participant cannot create someone else's marker", assertFails(setDoc(do
 await t("participant cannot read feedback", assertFails(getDoc(doc(u1, "feedback/f1"))));
 await t("participant cannot list feedback", assertFails(getDocs(collection(u1, "feedback"))));
 await t("participant cannot edit feedback", assertFails(setDoc(doc(u1, "feedback/f1"), { ...fb, overall: 1 })));
+await t("organizer answers never count as real feedback", assertFails(send(org, "org", "f9", fb)));
+await t("organizer can send test answers repeatedly", assertSucceeds(Promise.all([setDoc(doc(org, "feedbackTest/t1"), fb), setDoc(doc(org, "feedbackTest/t2"), fb)])));
+await t("participant cannot write test answers", assertFails(setDoc(doc(u1, "feedbackTest/t3"), fb)));
 await t("organizer reads feedback", assertSucceeds(getDocs(collection(org, "feedback"))));
 await t("settings limited to the photo link", assertFails(setDoc(doc(org, "settings/other"), { driveUrl: "https://drive.google.com/z", updatedAt: "t" })));
 await t("organizer lists profiles", assertSucceeds(getDocs(collection(org, "users"))));
