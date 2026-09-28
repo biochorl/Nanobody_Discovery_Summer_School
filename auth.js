@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-analytics.js";
 import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, createUserWithEmailAndPassword, onAuthStateChanged, signOut, deleteUser, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, Bytes } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc, collection, getDocs, Bytes, writeBatch } from "https://www.gstatic.com/firebasejs/10.9.0/firebase-firestore.js";
 // Note: this project intentionally does NOT use Firebase Storage — as of late 2024,
 // new Cloud Storage for Firebase buckets require the paid Blaze plan. Photos and
 // confirmation letters are instead stored as compact base64 text directly in
@@ -1100,7 +1100,7 @@ function checkAdminStatus(user) {
       renderTalkMaterials(true); // adds the organizer's per-talk upload links
       if (galleryAdmin) galleryAdmin.style.display = "";
       if (isSectionActive("images")) loadGallery(); // re-render with delete buttons
-      if (isSectionActive("feedback")) loadFeedback(); // adds the organizer's results
+      refreshFeedbackAccess(); // the organizer keeps the Feedback tab, for the results
     }
     if (navSubscribersItem) navSubscribersItem.style.display = isAdmin ? "block" : "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = isAdmin ? "flex" : "none";
@@ -1821,8 +1821,7 @@ onAuthStateChanged(auth, (user) => {
     renderTalkMaterials(true);
     if (isSectionActive("images")) loadGallery();
     if (isSectionActive("participants")) loadParticipants();
-    if (feedbackHeader) feedbackHeader.style.display = "";
-    if (isSectionActive("feedback")) loadFeedback();
+    refreshFeedbackAccess();
 
   } else {
     // User is signed out
@@ -1839,19 +1838,20 @@ onAuthStateChanged(auth, (user) => {
     renderTalkMaterials(false);
     loadGallery(); // back to the "Soon / log in" state
     loadParticipants(); // back to the "log in" state
-    if (feedbackHeader) feedbackHeader.style.display = "none";
-    loadFeedback(); // back to the "log in" state
+    refreshFeedbackAccess(); // hides the Feedback tab and button again
   }
 });
 
 // ===== Anonymous feedback (built into the site) =====
 //
-// Answers go to feedback/{random id} WITHOUT the author's uid, name or email, so organizers
-// can't tell who wrote what. firestore.rules: any signed-in user may create one well-formed
-// answer document; only the organizer can read (or delete) them; nobody can edit them.
+// One answer per account, kept apart from who sent it. Sending writes two documents in one
+// batch: feedbackSent/{uid} (empty — just "this account has answered") and feedback/{random id}
+// (the answers, with no uid, name or email). firestore.rules only accepts an answer when that
+// account's marker did not exist before and is created in the same batch, so a second answer is
+// refused on any device. Nothing on the site links a marker to an answer.
+// ponytail: both documents share one save time, so someone querying Firestore's internal
+// timestamps could still pair them; that's the price of enforcing one answer per login.
 // The question ids and allowed options below must stay in sync with isValidFeedback() there.
-// ponytail: one response per person is only nudged (a flag in this browser), not enforced —
-// enforcing it would mean recording who answered, which defeats the anonymity.
 const feedbackHeader = document.getElementById("feedback-header");
 const feedbackLink = document.getElementById("feedback-link");
 const feedbackStatus = document.getElementById("feedback-status");
@@ -1902,7 +1902,7 @@ const FEEDBACK_QUESTIONS = [
 ];
 const FEEDBACK_ITEMS = FEEDBACK_QUESTIONS.flatMap((s) => s.items);
 const FEEDBACK_TEXT_MAX = 3000;
-const FEEDBACK_SENT_FLAG = "nds-feedback-sent";
+let feedbackSent = null; // null = unknown / logged out
 
 function el(tag, props = {}, ...children) {
   const node = Object.assign(document.createElement(tag), props);
@@ -1934,7 +1934,7 @@ function buildFeedbackForm() {
     feedbackForm.append(fs);
   });
   const error = el("p", { id: "feedback-error", style: "color: var(--accent-rose); font-size: 13px; display: none;" });
-  feedbackForm.append(error, el("button", { type: "submit", className: "register-btn", style: "border: none; cursor: pointer;", textContent: "Send anonymous feedback" }));
+  feedbackForm.append(error, el("button", { type: "submit", className: "register-btn", style: "border: none; cursor: pointer;", textContent: "Send feedback" }));
 
   // at most N ticked for "checks" questions
   FEEDBACK_ITEMS.filter((q) => q.type === "checks").forEach((q) => {
@@ -1962,8 +1962,25 @@ function readFeedbackForm() {
   return data;
 }
 
-function feedbackAlreadySent() {
-  try { return localStorage.getItem(FEEDBACK_SENT_FLAG) === "1"; } catch (e) { return false; }
+// The Feedback tab is only offered to logged-in users who haven't answered yet
+// (the organizer always keeps it, for the results).
+async function refreshFeedbackAccess(redirect = true) {
+  const user = auth.currentUser;
+  feedbackSent = null;
+  if (user) {
+    try {
+      feedbackSent = (await getDoc(doc(db, "feedbackSent", user.uid))).exists();
+    } catch (error) {
+      console.error("Failed to check feedback status:", error);
+      feedbackSent = true; // fail closed: hide the form rather than let a send fail
+    }
+    if (auth.currentUser !== user) return; // logged out meanwhile
+  }
+  const show = !!user && (!feedbackSent || isAdmin);
+  document.querySelectorAll('[data-target="feedback"]').forEach((a) => { (a.closest("li") || a).style.display = show ? "" : "none"; });
+  if (feedbackHeader) feedbackHeader.style.display = show && !feedbackSent ? "" : "none";
+  if (!show && redirect && isSectionActive("feedback")) goToSection("overview");
+  if (show && isSectionActive("feedback")) loadFeedback();
 }
 
 async function loadFeedback() {
@@ -1975,16 +1992,9 @@ async function loadFeedback() {
     feedbackStatus.textContent = "🔒 Log in to give feedback.";
     return;
   }
-  if (feedbackAlreadySent()) {
+  if (feedbackSent) {
     feedbackStatus.style.display = "";
-    feedbackStatus.textContent = "✅ Thank you — your feedback was sent from this browser. ";
-    const again = el("a", { href: "#", textContent: "Send another response" });
-    again.onclick = (e) => {
-      e.preventDefault();
-      try { localStorage.removeItem(FEEDBACK_SENT_FLAG); } catch (err) { /* ignore */ }
-      loadFeedback();
-    };
-    feedbackStatus.append(again);
+    feedbackStatus.textContent = "✅ Thank you — your feedback has been received. Each account can answer once.";
   } else {
     feedbackStatus.style.display = "none";
     if (!feedbackForm.childElementCount) buildFeedbackForm();
@@ -2008,18 +2018,24 @@ if (feedbackForm) {
     button.disabled = true;
     button.textContent = "Sending…";
     try {
-      await setDoc(doc(collection(db, "feedback")), data); // random id, no uid stored
-      try { localStorage.setItem(FEEDBACK_SENT_FLAG, "1"); } catch (err) { /* private mode: fine */ }
+      const batch = writeBatch(db);
+      batch.set(doc(db, "feedbackSent", auth.currentUser.uid), {}); // "this account has answered"
+      batch.set(doc(collection(db, "feedback")), data);              // the answers: random id, no uid
+      await batch.commit();
+      feedbackSent = true;
       feedbackForm.reset();
-      loadFeedback();
+      loadFeedback();                 // shows the thank-you
+      refreshFeedbackAccess(false);   // removes the tab/button, but leaves the thank-you on screen
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       console.error("Failed to send feedback:", err);
-      error.textContent = "Could not send your feedback right now — please try again. (" + err.message + ")";
+      error.textContent = err.code === "permission-denied"
+        ? "It looks like your account has already sent its feedback — each account can answer once."
+        : "Could not send your feedback right now — please try again. (" + err.message + ")";
       error.style.display = "";
     } finally {
       button.disabled = false;
-      button.textContent = "Send anonymous feedback";
+      button.textContent = "Send feedback";
     }
   });
 }
@@ -2030,12 +2046,13 @@ async function loadFeedbackResults() {
   feedbackResults.style.display = "";
   feedbackResults.textContent = "Loading responses…";
   try {
-    const snap = await getDocs(collection(db, "feedback"));
+    const [snap, sent] = await Promise.all([getDocs(collection(db, "feedback")), getDocs(collection(db, "feedbackSent"))]);
     const rows = snap.docs.map((d) => d.data());
     feedbackResults.textContent = "";
     const csv = el("button", { type: "button", className: "register-btn", style: "border: none; cursor: pointer; margin-left: 10px;", textContent: "⬇️ Download CSV" });
     csv.onclick = () => downloadFeedbackCsv(rows);
-    feedbackResults.append(el("h3", { textContent: `📊 Responses (organizer only): ${rows.length}` }, rows.length ? csv : ""));
+    feedbackResults.append(el("h3", { textContent: `📊 Responses (organizer only): ${rows.length}` }, rows.length ? csv : ""),
+      el("p", { style: "font-size: 12px; color: var(--text-muted);", textContent: `${sent.size} account(s) have answered.` }));
     if (!rows.length) return;
     FEEDBACK_ITEMS.forEach((q) => {
       const box = el("div", { className: "fb-result" }, el("strong", { textContent: q.label }));

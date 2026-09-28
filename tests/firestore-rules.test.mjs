@@ -4,7 +4,7 @@
 //   npx firebase emulators:exec --only firestore --project demo-rules "node tests/firestore-rules.test.mjs"
 import { readFileSync } from "node:fs";
 import { initializeTestEnvironment, assertSucceeds, assertFails } from "@firebase/rules-unit-testing";
-import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, Bytes } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, Bytes, writeBatch } from "firebase/firestore";
 
 const env = await initializeTestEnvironment({
   projectId: "demo-rules",
@@ -60,11 +60,17 @@ await t("participant cannot add gallery photos", assertFails(setDoc(doc(u1, "gal
 await t("participant cannot write letters", assertFails(setDoc(doc(u1, "letters/u1"), { pdfDataUrl: "x" })));
 await t("nobody can make themselves admin", assertFails(setDoc(doc(u1, "admins/u1"), {})));
 const fb = { v: 1, role: "Participant", overall: 5, sessions: ["lab", "denovo"], liked: "the lab", accommodation: 0 };
+const send = (db, uid, id, data) => { const b = writeBatch(db); b.set(doc(db, "feedbackSent", uid), {}); b.set(doc(db, "feedback", id), data); return b.commit(); };
 await t("anon cannot send feedback", assertFails(setDoc(doc(anon, "feedback/a1"), fb)));
-await t("participant sends anonymous feedback", assertSucceeds(setDoc(doc(u1, "feedback/f1"), fb)));
-await t("feedback cannot carry identity fields", assertFails(setDoc(doc(u1, "feedback/f2"), { ...fb, uid: "u1" })));
-await t("feedback scales are 1..5", assertFails(setDoc(doc(u1, "feedback/f3"), { ...fb, overall: 9 })));
-await t("feedback sessions max 3 known ids", assertFails(setDoc(doc(u1, "feedback/f4"), { ...fb, sessions: ["lab", "x"] })));
+await t("answer without its marker is refused", assertFails(setDoc(doc(u1, "feedback/f0"), fb)));
+await t("feedback cannot carry identity fields", assertFails(send(u1, "u1", "f2", { ...fb, uid: "u1" })));
+await t("feedback scales are 1..5", assertFails(send(u1, "u1", "f3", { ...fb, overall: 9 })));
+await t("feedback sessions max 3 known ids", assertFails(send(u1, "u1", "f4", { ...fb, sessions: ["lab", "x"] })));
+await t("participant sends feedback once", assertSucceeds(send(u1, "u1", "f1", fb)));
+await t("second answer from the same account is refused", assertFails(send(u1, "u1", "f5", fb)));
+await t("second answer without marker is refused", assertFails(setDoc(doc(u1, "feedback/f6"), fb)));
+await t("participant cannot delete own marker", assertFails(deleteDoc(doc(u1, "feedbackSent/u1"))));
+await t("participant cannot create someone else's marker", assertFails(setDoc(doc(u1, "feedbackSent/u2"), {})));
 await t("participant cannot read feedback", assertFails(getDoc(doc(u1, "feedback/f1"))));
 await t("participant cannot list feedback", assertFails(getDocs(collection(u1, "feedback"))));
 await t("participant cannot edit feedback", assertFails(setDoc(doc(u1, "feedback/f1"), { ...fb, overall: 1 })));
