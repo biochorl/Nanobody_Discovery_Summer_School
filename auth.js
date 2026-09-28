@@ -189,6 +189,21 @@ const MAX_LETTER_BYTES = 650 * 1024; // 650 KB raw → ~890 KB encoded, leaves h
 // not something only the organizer issues. Same size-cap reasoning as the letter.
 const MAX_ABSTRACT_BYTES = 300 * 1024; // 300 KB raw → ~410 KB encoded
 const ALLOWED_ABSTRACT_EXTENSIONS = [".doc", ".docx"];
+// Stored files come back from Firestore as data: URLs that were written by *other* people
+// (a participant's abstract is opened by the organizer). Only ever put a data: URL of an
+// expected type into an href — never e.g. "javascript:…", which would run inside the
+// organizer's logged-in session. firestore.rules enforces the same prefixes on write.
+function safeDataUrl(url, mimePattern) {
+  return typeof url === "string" && new RegExp("^data:(" + mimePattern + ");base64,").test(url) ? url : "#";
+}
+const ABSTRACT_MIME_PATTERN = "application/msword|application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document|application/octet-stream";
+const PDF_MIME_PATTERN = "application/pdf";
+// Keep a downloaded name harmless: no path separators or control characters.
+function safeFileName(name, fallback) {
+  const clean = String(name || "").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").slice(0, 150);
+  return clean || fallback;
+}
+
 const ALLOWED_ABSTRACT_MIME_TYPES = [
   "application/msword",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -251,7 +266,10 @@ async function loadChunkedFile(col, id) {
   const meta = snap.data();
   const chunks = await Promise.all(Array.from({ length: meta.chunkCount }, (_, i) =>
     getDoc(doc(db, col, id, "chunks", String(i)))));
-  return { blob: new Blob(chunks.map(c => c.data().data.toUint8Array()), { type: meta.mimeType }), meta };
+  const SAFE_TYPES = ["application/pdf", "application/vnd.ms-powerpoint",
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation", "image/jpeg"];
+  const type = SAFE_TYPES.includes(meta.mimeType) ? meta.mimeType : "application/octet-stream";
+  return { blob: new Blob(chunks.map(c => c.data().data.toUint8Array()), { type }), meta: { ...meta, fileName: safeFileName(meta.fileName, "file") } };
 }
 
 async function deleteChunkedFile(col, id) {
@@ -580,7 +598,7 @@ function resetAccountForm() {
 // client-side into a small JPEG before it's ever saved. accountPhotoPreview.src *is* the
 // value that gets written on Save — there's no separate upload step or pending file.
 // Client-side checks (type, dimensions, output size) are a UX convenience only; the real
-// enforcement is the Firestore security rule's size cap on the photoDataUrl field.
+// enforcement is the Firestore security rule on users/{uid} (JPEG data URL, size cap).
 const MAX_PHOTO_INPUT_BYTES = 15 * 1024 * 1024; // reject absurdly large source files outright
 const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 const PHOTO_MAX_DIMENSION = 420; // px, longest edge after resize
@@ -672,8 +690,8 @@ function loadConfirmationLetter(user) {
   getDoc(doc(db, "letters", user.uid)).then((snap) => {
     if (snap.exists() && snap.data().pdfDataUrl) {
       accountLetterStatus.textContent = "Your confirmation letter is ready.";
-      accountLetterDownload.href = snap.data().pdfDataUrl;
-      accountLetterDownload.download = snap.data().fileName || "confirmation-letter.pdf";
+      accountLetterDownload.href = safeDataUrl(snap.data().pdfDataUrl, PDF_MIME_PATTERN);
+      accountLetterDownload.download = safeFileName(snap.data().fileName, "confirmation-letter.pdf");
       accountLetterDownload.style.display = "inline-block";
     } else {
       accountLetterStatus.textContent = "Fill in and save your information above — your confirmation letter will appear here once the organisers issue it.";
@@ -696,8 +714,8 @@ function loadAbstract(user) {
   getDoc(doc(db, "abstracts", user.uid)).then((snap) => {
     if (snap.exists() && snap.data().abstractDataUrl) {
       accountAbstractStatus.textContent = `Current abstract: ${snap.data().fileName || "abstract"} — uploading a new one will replace it.`;
-      accountAbstractDownload.href = snap.data().abstractDataUrl;
-      accountAbstractDownload.download = snap.data().fileName || "abstract.docx";
+      accountAbstractDownload.href = safeDataUrl(snap.data().abstractDataUrl, ABSTRACT_MIME_PATTERN);
+      accountAbstractDownload.download = safeFileName(snap.data().fileName, "abstract.docx");
       accountAbstractDownload.style.display = "inline-block";
     } else {
       accountAbstractStatus.textContent = "No abstract uploaded yet.";
@@ -1210,8 +1228,8 @@ function checkSubscriberAbstract(uid) {
     if (snap.exists() && snap.data().abstractDataUrl) {
       subsAbstractStatus.textContent = `Submitted: ${snap.data().fileName || "abstract"}`;
       if (subsAbstractDownload) {
-        subsAbstractDownload.href = snap.data().abstractDataUrl;
-        subsAbstractDownload.download = snap.data().fileName || "abstract.docx";
+        subsAbstractDownload.href = safeDataUrl(snap.data().abstractDataUrl, ABSTRACT_MIME_PATTERN);
+        subsAbstractDownload.download = safeFileName(snap.data().fileName, "abstract.docx");
         subsAbstractDownload.style.display = "inline-block";
       }
     } else {
@@ -1347,8 +1365,8 @@ function checkExistingLetter(uid) {
     if (snap.exists() && snap.data().pdfDataUrl) {
       subsLetterStatus.textContent = "A confirmation letter is already on file. Uploading a new one will replace it.";
       if (subsLetterCurrentLink) {
-        subsLetterCurrentLink.href = snap.data().pdfDataUrl;
-        subsLetterCurrentLink.download = snap.data().fileName || "confirmation-letter.pdf";
+        subsLetterCurrentLink.href = safeDataUrl(snap.data().pdfDataUrl, PDF_MIME_PATTERN);
+        subsLetterCurrentLink.download = safeFileName(snap.data().fileName, "confirmation-letter.pdf");
         subsLetterCurrentLink.style.display = "inline-block";
       }
     } else {

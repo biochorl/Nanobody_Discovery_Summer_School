@@ -1,55 +1,86 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function isSelf(userId) { return signedIn() && request.auth.uid == userId; }
+
     match /admins/{adminId} {
-      allow read: if request.auth != null && request.auth.uid == adminId;
+      allow read: if isSelf(adminId);
       allow write: if false;
     }
-    match /users/{userId} {
-      allow read: if request.auth != null &&
-                     (request.auth.uid == userId ||
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-      allow write: if request.auth != null && request.auth.uid == userId;
+
+    // users/{uid} — the full private profile: only its owner and the organizer can read it.
+    // The owner can only store a JPEG photo (as produced by the site) and their own login email.
+    function isValidProfile(d) {
+      return (!('photoDataUrl' in d) ||
+                (d.photoDataUrl is string && d.photoDataUrl.size() < 230000 &&
+                 d.photoDataUrl.matches('data:image/jpeg;base64,.*'))) &&
+             (!('email' in d) || d.email == request.auth.token.email);
     }
+    match /users/{userId} {
+      allow read: if isSelf(userId) || isAdmin();
+      allow create, update: if isSelf(userId) && isValidProfile(request.resource.data);
+      allow delete: if isSelf(userId);
+    }
+
     match /letters/{userId} {
-      allow read: if request.auth != null &&
-                     (request.auth.uid == userId ||
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-      allow write: if request.auth != null &&
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow read: if isSelf(userId) || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // abstracts/{uid} — opened by the organizer, so only a Word file data URL is accepted
+    // (never anything a browser could run).
+    function isValidAbstract(d) {
+      return d.keys().hasOnly(['abstractDataUrl', 'fileName', 'uploadedAt']) &&
+             d.abstractDataUrl is string && d.abstractDataUrl.size() < 420000 &&
+             d.abstractDataUrl.matches('data:application/(msword|vnd[.]openxmlformats-officedocument[.]wordprocessingml[.]document|octet-stream);base64,.*') &&
+             d.fileName is string && d.fileName.size() < 300;
     }
     match /abstracts/{userId} {
-      allow read: if request.auth != null &&
-                     (request.auth.uid == userId ||
-                     exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isSelf(userId) || isAdmin();
+      allow create, update: if isSelf(userId) && isValidAbstract(request.resource.data);
+      allow delete: if isSelf(userId);
     }
+
     // speakers/{uid} = { talkId } — set by the organizer in the Subscribers panel
     match /speakers/{userId} {
-      allow read: if request.auth != null &&
-                     (request.auth.uid == userId ||
-                     exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-      allow write: if request.auth != null &&
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow read: if isSelf(userId) || isAdmin();
+      allow write: if isAdmin();
     }
+
     // presentations/{talkId} (+ its chunks) — a talk's slides: any signed-in user can
     // download, only that talk's assigned speaker (or the organizer) can upload/replace
     function canUploadSlides(talkId) {
-      return request.auth != null &&
-             (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) ||
-              get(/databases/$(database)/documents/speakers/$(request.auth.uid)).data.talkId == talkId);
+      return isAdmin() ||
+             (signedIn() && get(/databases/$(database)/documents/speakers/$(request.auth.uid)).data.talkId == talkId);
+    }
+    function isValidSlidesMeta(d) {
+      return d.keys().hasOnly(['fileName', 'mimeType', 'size', 'chunkCount', 'uploadedBy', 'uploadedAt']) &&
+             d.fileName is string && d.fileName.size() < 300 &&
+             d.mimeType is string && d.mimeType.size() < 120 &&
+             d.chunkCount is int && d.chunkCount >= 1 && d.chunkCount <= 120 &&
+             d.uploadedBy == request.auth.uid;
     }
     match /presentations/{talkId} {
-      allow read: if request.auth != null;
-      allow write: if canUploadSlides(talkId);
+      allow read: if signedIn();
+      allow create, update: if canUploadSlides(talkId) && isValidSlidesMeta(request.resource.data);
+      allow delete: if canUploadSlides(talkId);
       match /chunks/{chunkId} {
-        allow read: if request.auth != null;
-        allow write: if canUploadSlides(talkId);
+        allow read: if signedIn();
+        allow create, update: if canUploadSlides(talkId) && chunkId.matches('[0-9]{1,3}') &&
+                                 request.resource.data.keys().hasOnly(['data']) &&
+                                 request.resource.data.data is bytes &&
+                                 request.resource.data.data.size() <= 921600;
+        allow delete: if canUploadSlides(talkId);
       }
     }
+
     // directory/{uid} — the only profile data other participants can see: name, email,
-    // phone and affiliation. Readable by any signed-in user; written by the owner or the
-    // organizer, with exactly these (short, text) fields and nothing else.
+    // phone and affiliation. Readable by any signed-in user; written by the owner (with their
+    // own login email) or the organizer, with exactly these short text fields and nothing else.
     function isDirectoryEntry(d) {
       return d.keys().hasOnly(['fullName', 'email', 'phone', 'institution', 'updatedAt']) &&
              d.fullName is string && d.fullName.size() < 200 &&
@@ -59,33 +90,28 @@ service cloud.firestore {
              d.updatedAt is string && d.updatedAt.size() < 40;
     }
     match /directory/{userId} {
-      allow read: if request.auth != null;
-      allow create, update: if request.auth != null &&
-                               (request.auth.uid == userId ||
-                                exists(/databases/$(database)/documents/admins/$(request.auth.uid))) &&
-                               isDirectoryEntry(request.resource.data);
-      allow delete: if request.auth != null &&
-                       (request.auth.uid == userId ||
-                        exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+      allow read: if signedIn();
+      allow create, update: if isDirectoryEntry(request.resource.data) &&
+                               (isAdmin() ||
+                                (isSelf(userId) && request.resource.data.email == request.auth.token.email));
+      allow delete: if isSelf(userId) || isAdmin();
     }
+
     // settings/photos = { driveUrl } — the shared photo folder link: signed-in users can read
     // it, only the organizer can set it
     match /settings/{docId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null &&
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-                      request.resource.data.keys().hasOnly(['driveUrl', 'updatedAt']);
+      allow read: if signedIn();
+      allow write: if isAdmin() && request.resource.data.keys().hasOnly(['driveUrl', 'updatedAt']);
     }
+
     // gallery/{imageId} (+ its chunks) — workshop photos: any signed-in user can view,
     // only the organizer can add or delete
     match /gallery/{imageId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null &&
-                      exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+      allow read: if signedIn();
+      allow write: if isAdmin();
       match /chunks/{chunkId} {
-        allow read: if request.auth != null;
-        allow write: if request.auth != null &&
-                        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+        allow read: if signedIn();
+        allow write: if isAdmin();
       }
     }
   }
