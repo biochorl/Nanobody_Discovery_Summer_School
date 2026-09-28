@@ -59,6 +59,10 @@ await t("participant cannot change photo-folder link", assertFails(setDoc(doc(u1
 await t("participant cannot add gallery photos", assertFails(setDoc(doc(u1, "gallery/g1"), { a: 1 })));
 await t("participant cannot write letters", assertFails(setDoc(doc(u1, "letters/u1"), { pdfDataUrl: "x" })));
 await t("nobody can make themselves admin", assertFails(setDoc(doc(u1, "admins/u1"), {})));
+await t("participant reads feedback link", assertSucceeds(getDoc(doc(u1, "settings/feedback"))));
+await t("participant cannot change feedback link", assertFails(setDoc(doc(u1, "settings/feedback"), { feedbackUrl: "https://evil.example" })));
+await t("organizer sets feedback form link", assertSucceeds(setDoc(doc(org, "settings/feedback"), { feedbackUrl: "https://forms.gle/abc", updatedAt: "t" })));
+await t("feedback link must be Google Forms", assertFails(setDoc(doc(org, "settings/feedback"), { feedbackUrl: "javascript:alert(1)", updatedAt: "t" })));
 await t("organizer lists profiles", assertSucceeds(getDocs(collection(org, "users"))));
 await t("organizer sets photo-folder link", assertSucceeds(setDoc(doc(org, "settings/photos"), { driveUrl: "https://drive.google.com/y", updatedAt: "t" })));
 await t("participant can delete own account data", assertSucceeds(Promise.all([deleteDoc(doc(u1, "users/u1")), deleteDoc(doc(u1, "abstracts/u1")), deleteDoc(doc(u1, "directory/u1"))])));

@@ -1100,6 +1100,7 @@ function checkAdminStatus(user) {
       renderTalkMaterials(true); // adds the organizer's per-talk upload links
       if (galleryAdmin) galleryAdmin.style.display = "";
       if (isSectionActive("images")) loadGallery(); // re-render with delete buttons
+      loadFeedbackLink(); // fills the organizer's link box
     }
     if (navSubscribersItem) navSubscribersItem.style.display = isAdmin ? "block" : "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = isAdmin ? "flex" : "none";
@@ -1603,6 +1604,57 @@ function isDriveUrl(url) {
   return /^https:\/\/(drive|photos)\.google\.com\//.test(url || "");
 }
 
+// Anonymous feedback form (settings/feedback): same model as the photo folder link — stored in
+// Firestore, handed only to signed-in users, set by the organizer from the Subscribers tab.
+const feedbackHeader = document.getElementById("feedback-header");
+const feedbackLink = document.getElementById("feedback-link");
+const feedbackAdmin = document.getElementById("feedback-admin");
+const feedbackInput = document.getElementById("feedback-input");
+const feedbackSave = document.getElementById("feedback-save");
+const feedbackStatus = document.getElementById("feedback-status");
+
+function isFormUrl(url) {
+  return /^https:\/\/(docs\.google\.com\/forms\/|forms\.gle\/)/.test(url || "");
+}
+
+async function loadFeedbackLink() {
+  if (feedbackHeader) feedbackHeader.style.display = "none";
+  if (feedbackAdmin) feedbackAdmin.style.display = isAdmin ? "" : "none";
+  if (!auth.currentUser || !feedbackLink) return;
+  try {
+    const snap = await getDoc(doc(db, "settings", "feedback"));
+    const url = snap.exists() ? snap.data().feedbackUrl : "";
+    if (feedbackInput && isAdmin) feedbackInput.value = url || "";
+    if (!auth.currentUser || !isFormUrl(url)) return; // user may have logged out meanwhile
+    feedbackLink.href = url;
+    feedbackHeader.style.display = "";
+  } catch (error) {
+    console.error("Failed to load the feedback link:", error);
+  }
+}
+
+if (feedbackSave) {
+  feedbackSave.onclick = async () => {
+    const url = feedbackInput.value.trim();
+    if (url && !isFormUrl(url)) {
+      feedbackStatus.textContent = "⚠️ Please paste a Google Forms link (https://docs.google.com/forms/… or https://forms.gle/…).";
+      return;
+    }
+    feedbackSave.disabled = true;
+    feedbackStatus.textContent = "Saving…";
+    try {
+      await setDoc(doc(db, "settings", "feedback"), { feedbackUrl: url, updatedAt: new Date().toISOString() });
+      feedbackStatus.textContent = url ? "✅ Saved — logged-in users now see the feedback button." : "✅ Link removed.";
+      loadFeedbackLink();
+    } catch (error) {
+      console.error("Failed to save the feedback link:", error);
+      feedbackStatus.textContent = "Could not save: " + error.message;
+    } finally {
+      feedbackSave.disabled = false;
+    }
+  };
+}
+
 async function loadDriveLink() {
   if (galleryDrive) galleryDrive.style.display = "none";
   if (galleryDriveAdmin) galleryDriveAdmin.style.display = isAdmin ? "" : "none";
@@ -1820,6 +1872,7 @@ onAuthStateChanged(auth, (user) => {
     renderTalkMaterials(true);
     if (isSectionActive("images")) loadGallery();
     if (isSectionActive("participants")) loadParticipants();
+    loadFeedbackLink();
 
   } else {
     // User is signed out
@@ -1836,6 +1889,7 @@ onAuthStateChanged(auth, (user) => {
     renderTalkMaterials(false);
     loadGallery(); // back to the "Soon / log in" state
     loadParticipants(); // back to the "log in" state
+    loadFeedbackLink(); // hides the button again
   }
 });
 

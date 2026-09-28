@@ -65,6 +65,9 @@
     <div class="header-location-container" style="margin-top: 8px;">
       <a href="flyer.pdf?v=20260928" target="_blank" rel="noopener" class="header-map-btn" title="Download the event flyer (PDF)">📄 Download Flyer (PDF)</a>
     </div>
+    <div id="feedback-header" class="header-location-container" style="margin-top: 8px; display: none;">
+      <a id="feedback-link" href="#" target="_blank" rel="noopener noreferrer" class="header-map-btn" title="Anonymous feedback form (Google Forms)">📝 Give anonymous feedback</a>
+    </div>
 
   </header>
 
@@ -737,6 +740,15 @@
         <h3 data-i18n="subs_h2">🛡️ Subscribers</h3>
         <div class="admin-badge" data-i18n="subs_badge">Organizer view — read-only. You can see what participants have entered, but cannot edit their information from here.</div>
 
+        <div id="feedback-admin" style="display: none; margin: 12px 0 20px;">
+          <label for="feedback-input" style="font-size: 13px; color: var(--text-muted);">Anonymous feedback form link (shown to logged-in users in the page header):</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+            <input type="url" id="feedback-input" placeholder="https://docs.google.com/forms/d/e/…/viewform" style="flex: 1; min-width: 240px; padding: 8px 12px; border: 1px solid var(--border-glass); border-radius: 8px; font: inherit;">
+            <button type="button" id="feedback-save" class="register-btn" style="border: none; cursor: pointer; padding: 9px 20px; font-size: 13px;">Save link</button>
+          </div>
+          <div id="feedback-status" style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"></div>
+        </div>
+
         <div id="subscribers-list-view">
           <div id="subscribers-list" class="subscribers-list">
             <p id="subscribers-loading" style="color: var(--text-muted); font-size: 14px;" data-i18n="subs_loading">Loading subscribers…</p>
@@ -1042,7 +1054,7 @@
 
   <script src="script.js?v=19"></script>
   <script src="lang.js?v=19"></script>
-  <script type="module" src="auth.js?v=35"></script>
+  <script type="module" src="auth.js?v=36"></script>
 </body>
 
 </html>
