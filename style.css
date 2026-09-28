@@ -911,11 +911,22 @@ blockquote {
   .timetable-days { flex-wrap: wrap; }
   .timetable-days button { flex: none; }
 
-  /* Mobile bottom nav */
+  /* Mobile bottom nav: every tab visible at once (two rows of five) instead of a
+     sideways-scrolling strip where the last tabs were hidden off-screen */
   .mobile-nav {
-    display: flex !important;
+    display: grid !important;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+    overflow: visible;
+    padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
   }
+  .mobile-nav a { padding: 4px 2px; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 9px; letter-spacing: -0.2px; }
+  /* keep the end of the page (footer, last buttons) out from under the fixed nav */
+  body { padding-bottom: var(--mobile-nav-h, 130px); }
+  #site-footer { flex-direction: column; gap: 6px; }
+  .mobile-only { display: block !important; }
 }
+.mobile-only { display: none; }
 
 /* ===== Mobile Bottom Nav ===== */
 .mobile-nav {

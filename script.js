@@ -230,3 +230,11 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
   });
 })();
+
+
+// Mobile: pad the page by the bottom nav's real height (it can wrap to 2 rows, 3 for organizers)
+(() => {
+  const nav = document.getElementById("mobile-nav");
+  if (!nav || !window.ResizeObserver) return;
+  new ResizeObserver(() => document.documentElement.style.setProperty("--mobile-nav-h", (nav.offsetHeight + 12) + "px")).observe(nav);
+})();
