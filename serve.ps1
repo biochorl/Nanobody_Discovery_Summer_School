@@ -10,8 +10,10 @@ try {
         $response = $context.Response
         $path = $request.Url.LocalPath
         if ($path -eq "/") { $path = "/index.html" }
-        $file = Join-Path (Get-Location) $path.TrimStart('/')
-        if (Test-Path $file -PathType Leaf) {
+        # Resolve the real path and refuse anything outside this folder (e.g. /..%2f..%2fsecret)
+        $root = (Get-Location).Path.TrimEnd('\') + '\'
+        $file = [System.IO.Path]::GetFullPath((Join-Path $root $path.TrimStart('/')))
+        if ($file.StartsWith($root, [System.StringComparison]::OrdinalIgnoreCase) -and (Test-Path -LiteralPath $file -PathType Leaf)) {
             $extension = [System.IO.Path]::GetExtension($file)
             $contentType = switch ($extension) {
                 ".html" { "text/html" }
@@ -21,6 +23,8 @@ try {
                 ".jpg"  { "image/jpeg" }
                 ".jpeg" { "image/jpeg" }
                 ".gif"  { "image/gif" }
+                ".svg"  { "image/svg+xml" }
+                ".pdf"  { "application/pdf" }
                 default { "application/octet-stream" }
             }
             $response.ContentType = $contentType

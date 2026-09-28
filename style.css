@@ -1013,6 +1013,10 @@ blockquote {
   transform: translateY(0);
 }
 .close-modal {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
   position: absolute;
   top: 16px; right: 20px;
   font-size: 24px;

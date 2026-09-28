@@ -500,7 +500,9 @@ submitBtn.onclick = () => {
         goToSection("account");
       })
       .catch((error) => {
-        showError(error.message.replace("Firebase: ", ""));
+        // Sign-up switched off in the Firebase console → say so plainly instead of a raw code
+        const closed = error.code === "auth/admin-restricted-operation" || error.code === "auth/operation-not-allowed";
+        showError(closed ? "Registration is closed." : error.message.replace("Firebase: ", ""));
       })
       .finally(() => {
         submitBtn.disabled = false;
@@ -996,9 +998,6 @@ if (accountSaveBtn) {
   };
 }
 
-window.uploadMaterial = () => {
-  alert("File selected! To actually host files securely, Firebase Storage configuration will be enabled next.");
-};
 
 // ===== Delete my account (self-service, open until 1 September 2026) =====
 //
@@ -1839,3 +1838,13 @@ onAuthStateChanged(auth, (user) => {
     loadParticipants(); // back to the "log in" state
   }
 });
+
+// ===== Event wiring =====
+// Buttons are wired here rather than with inline onclick="…" attributes, so the page's
+// Content-Security-Policy can forbid inline script entirely.
+document.querySelectorAll(".js-open-login").forEach((el) => el.addEventListener("click", window.openLoginModal));
+document.querySelector(".close-modal")?.addEventListener("click", () => window.closeLoginModal());
+topLogoutBtn?.addEventListener("click", window.logoutUser);
+authTabSignin?.addEventListener("click", (e) => window.setAuthMode(true, e));
+authTabRegister?.addEventListener("click", (e) => window.setAuthMode(false, e));
+switchLink?.addEventListener("click", window.toggleAuthMode);

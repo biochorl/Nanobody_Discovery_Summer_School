@@ -1,3 +1,11 @@
+// Refuse to run inside another site's frame (clickjacking: tricking a logged-in organizer
+// into clicking hidden buttons). GitHub Pages can't send X-Frame-Options, so do it here.
+// Browsers often block a framed page from redirecting the top window, so hide the page first.
+if (window.top !== window.self) {
+  document.documentElement.style.display = "none";
+  try { window.top.location.replace(window.location.href); } catch (e) { /* stays hidden */ }
+}
+
 // ===== Enhanced Interactions Script =====
 
 document.addEventListener('DOMContentLoaded', () => {

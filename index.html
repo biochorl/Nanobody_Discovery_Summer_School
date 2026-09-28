@@ -4,10 +4,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Only this site, Firebase and Google Fonts/Analytics may load code or receive data; no inline scripts -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; img-src 'self' data: blob: https://*.google-analytics.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://ai-based-protein-design.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Nanobody Discovery Summer School: Current & Future Methods</title>
   <meta name="description"
     content="Summer School on AI-based methods for de novo protein and nanobody binder design. 23-25 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
-  <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="style.css?v=28">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -22,7 +25,7 @@
   <div id="top-bar">
     <div class="lang-switcher">
       <span style="color: var(--text-muted); margin-right: 4px;" data-i18n="lang_txt">🌐</span>
-      <select id="lang-select" onchange="changeLanguage(this.value)">
+      <select id="lang-select">
         <option value="en">English</option>
         <option value="it">Italiano</option>
         <option value="sl">Slovenščina</option>
@@ -32,9 +35,9 @@
       </select>
     </div>
     <div id="user-auth-status">
-      <a href="#" id="open-login-btn" onclick="openLoginModal(event)">Login / Register</a>
+      <a href="#" id="open-login-btn" class="js-open-login">Login / Register</a>
       <a href="#" id="user-email-display" data-target="account" style="display:none; margin-right:10px; font-weight:600;" title="Go to My Account"></a>
-      <a href="#" id="logout-btn" style="display:none;" onclick="logoutUser(event)">Logout</a>
+      <a href="#" id="logout-btn" style="display:none;">Logout</a>
     </div>
   </div>
 
@@ -55,7 +58,7 @@
     <div class="event-meta" data-i18n="event_date">23–25 Sep 2026</div>
     <div class="header-location-container">
       <span class="event-location" data-i18n="event_loc">University of Nova Gorica</span>
-      <a href="https://maps.app.goo.gl/PM1hABKpAfYEtW3E6" target="_blank" class="header-map-btn"
+      <a href="https://maps.app.goo.gl/PM1hABKpAfYEtW3E6" target="_blank" rel="noopener noreferrer" class="header-map-btn"
         title="View on Google Maps">📍 Map</a>
     </div>
     <div class="event-tz" data-i18n="event_tz">Europe/Ljubljana timezone</div>
@@ -547,7 +550,7 @@
         <div id="account-locked-state" class="reg-notice">
           <strong data-i18n="acc_login_req">Account required</strong><br>
           <span data-i18n="acc_login_desc">You must be logged in to view or edit your account.</span><br>
-          <a href="#" class="register-btn" data-i18n="btn_login" onclick="openLoginModal(event)">Login to Continue</a>
+          <a href="#" class="register-btn js-open-login" data-i18n="btn_login">Login to Continue</a>
         </div>
 
         <div id="account-unlocked-state" style="display:none;">
@@ -824,21 +827,21 @@
         <p data-i18n="eve_dinner_desc">On Thursday evening we'll all head to <strong>Šmartno</strong>, a picturesque walled medieval village perched on a hilltop in the Goriška Brda wine region. See the schedule for the exact venue and departure details — and <a href="https://www.sanmartin.si/en" target="_blank" rel="noopener">sanmartin.si</a> for more on the village and its hospitality.</p>
         <div style="text-align: center; margin-top: 20px; margin-bottom: 32px;">
           <a href="https://www.sanmartin.si/en" target="_blank" rel="noopener" class="social-photo-link"><img src="smartno-sunset.jpg" alt="Šmartno village at sunset, Goriška Brda"></a>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Source: <a href="https://www.sanmartin.si/en" target="_blank" style="color: var(--accent-glow);">sanmartin.si</a></p>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Source: <a href="https://www.sanmartin.si/en" target="_blank" rel="noopener noreferrer" style="color: var(--accent-glow);">sanmartin.si</a></p>
         </div>
 
         <h3 data-i18n="eve_trek_h">🥾 Friday Trekking — Cerje</h3>
         <p data-i18n="eve_trek_desc">On Friday afternoon, once the Summer School wraps up, anyone up for it is welcome to join a soft trekking to <a href="https://share.google/dTDxLGhKbrEZ83KRB" target="_blank" rel="noopener">Cerje</a>, home to the 25-metre Peace Monument — a hilltop tower-museum tracing Slovenian history across seven levels, from the earliest surviving Slovenian texts to the Isonzo Front, with a panoramic terrace over Gorizia, the Karst, the Vipava Valley, the Friuli Plain and the Adriatic Sea. From the UNG Rožna Dolina campus it's about 1h30 on foot to Miren (or ~20 min by bus, line N6237), then a further ~1h, 300 m climb up to Cerje — roughly 2h30 door to door. See the <a href="https://www.komoot.it/smarttour/12140676?ref=atd&t_s=referral&t_cid=route_share" target="_blank" rel="noopener">Komoot route</a> for the full trekking details. Right at Cerje there's also <a href="https://share.google/3sycP4v41QWhM1Fnt" target="_blank" rel="noopener">a spot with a view</a> where you can sit down for food and drinks.</p>
         <div style="text-align: center; margin-top: 20px; margin-bottom: 32px;">
           <a href="https://www.go2025.eu/it/imports/poi/mirenkras/il-monumento-della-pace-a-cerje" target="_blank" rel="noopener" class="social-photo-link"><img src="cerje-peace-monument.jpg" alt="Cerje Peace Monument tower at sunset"></a>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Source: <a href="https://www.go2025.eu/it/imports/poi/mirenkras/il-monumento-della-pace-a-cerje" target="_blank" style="color: var(--accent-glow);">go2025.eu</a></p>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Source: <a href="https://www.go2025.eu/it/imports/poi/mirenkras/il-monumento-della-pace-a-cerje" target="_blank" rel="noopener noreferrer" style="color: var(--accent-glow);">go2025.eu</a></p>
         </div>
 
         <h3 data-i18n="eve_gusti_h">🎪 Gusti di Frontiera</h3>
-        <p data-i18n="eve_desc">The Summer School overlaps with <a href="https://gustidifrontiera.it/" target="_blank">"Gusti di Frontiera"</a>, the most awaited event of the year for the city of Gorizia: as every year, along the main city streets several food and beverage enogastronomic stands will arrive from all over the world, and will be accompanied with music, fun and shows. An event to not miss!</p>
+        <p data-i18n="eve_desc">The Summer School overlaps with <a href="https://gustidifrontiera.it/" target="_blank" rel="noopener noreferrer">"Gusti di Frontiera"</a>, the most awaited event of the year for the city of Gorizia: as every year, along the main city streets several food and beverage enogastronomic stands will arrive from all over the world, and will be accompanied with music, fun and shows. An event to not miss!</p>
         <div style="text-align: center; margin-top: 20px;">
           <a href="https://gustidifrontiera.it/" target="_blank" rel="noopener" class="social-photo-link"><img src="gusti-di-frontiera.jpg" alt="Gusti di Frontiera street food festival"></a>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Source: <a href="https://gustidifrontiera.it/" target="_blank" style="color: var(--accent-glow);">gustidifrontiera.it</a></p>
+          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Source: <a href="https://gustidifrontiera.it/" target="_blank" rel="noopener noreferrer" style="color: var(--accent-glow);">gustidifrontiera.it</a></p>
         </div>
       </section>
 
@@ -991,15 +994,15 @@
   <!-- Login/Register Modal -->
   <div id="login-modal" class="modal-overlay">
     <div class="modal-box">
-      <span class="close-modal" onclick="closeLoginModal()">&times;</span>
+      <button type="button" class="close-modal" aria-label="Close">&times;</button>
 
       <div class="auth-modal-icon">🔐</div>
       <h2 id="modal-title">Sign In</h2>
       <p class="auth-modal-subtitle" id="modal-subtitle">Access your Summer School account</p>
 
       <div class="auth-mode-tabs">
-        <button type="button" id="auth-tab-signin" class="auth-mode-tab active" onclick="setAuthMode(true, event)">Sign In</button>
-        <button type="button" id="auth-tab-register" class="auth-mode-tab" onclick="setAuthMode(false, event)">Register</button>
+        <button type="button" id="auth-tab-signin" class="auth-mode-tab active">Sign In</button>
+        <button type="button" id="auth-tab-register" class="auth-mode-tab">Register</button>
       </div>
 
       <div class="auth-form-group">
@@ -1030,16 +1033,16 @@
 
       <p class="auth-switch-text">
         <span id="auth-switch-prompt">Don't have an account?</span>
-        <a href="#" id="auth-switch-link" onclick="toggleAuthMode(event)">Register here</a>
+        <a href="#" id="auth-switch-link">Register here</a>
       </p>
 
       <p class="auth-modal-footnote">🔒 Your credentials are handled by Firebase Authentication over a secure connection.</p>
     </div>
   </div>
 
-  <script src="script.js?v=18"></script>
-  <script src="lang.js?v=18"></script>
-  <script type="module" src="auth.js?v=34"></script>
+  <script src="script.js?v=19"></script>
+  <script src="lang.js?v=19"></script>
+  <script type="module" src="auth.js?v=35"></script>
 </body>
 
 </html>

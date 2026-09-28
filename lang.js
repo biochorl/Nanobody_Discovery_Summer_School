@@ -408,5 +408,7 @@ function changeLanguage(lang) {
   });
 }
 
+document.getElementById('lang-select')?.addEventListener('change', (e) => changeLanguage(e.target.value));
+
 // Initial default to English
 changeLanguage('en');
