@@ -1479,6 +1479,12 @@ async function loadParticipants() {
   }
   participantsStatus.textContent = "Loading…";
   try {
+    if (isAdmin) {
+      // Organizer view: refresh the directory from the profiles first, so what you see here is
+      // exactly (and currently) what participants see.
+      const users = await getDocs(collection(db, "users"));
+      await syncDirectory(users.docs.map((d) => ({ uid: d.id, data: d.data() })));
+    }
     const snap = await getDocs(collection(db, "directory"));
     const people = snap.docs.map((d) => d.data())
       .filter((p) => p.fullName || p.email)
