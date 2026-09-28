@@ -396,6 +396,9 @@ window.setAuthMode = (loginMode, e) => {
 
 // Password reset: Firebase emails a link to its own hosted reset page
 // (<project>.firebaseapp.com/__/auth/action) — plain web, no Firebase Dynamic Links involved.
+// Firebase's default sender for this project (Authentication → Templates in the Firebase console)
+const RESET_SENDER = "noreply@ai-based-protein-design.firebaseapp.com";
+
 if (forgotLink) {
   forgotLink.onclick = (e) => {
     e.preventDefault();
@@ -406,7 +409,8 @@ if (forgotLink) {
       return;
     }
     // Same wording whether or not the account exists, so the form can't be used to probe emails
-    const sentMsg = "If an account exists for " + email + ", a password reset link has been sent. Check your inbox (and spam folder).";
+    const sentMsg = "If an account exists for " + email + ", a password reset link has been sent from " + RESET_SENDER +
+      ". It often lands in the spam/junk folder (or your university's quarantine) — please check there too.";
     forgotLink.style.pointerEvents = "none";
     sendPasswordResetEmail(auth, email)
       .then(() => showInfo(sentMsg))
