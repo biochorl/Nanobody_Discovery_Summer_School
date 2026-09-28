@@ -1844,13 +1844,14 @@ onAuthStateChanged(auth, (user) => {
 
 // ===== Anonymous feedback (built into the site) =====
 //
-// One answer per account, kept apart from who sent it. Sending writes two documents in one
-// batch: feedbackSent/{uid} (empty — just "this account has answered") and feedback/{random id}
-// (the answers, with no uid, name or email). firestore.rules only accepts an answer when that
-// account's marker did not exist before and is created in the same batch, so a second answer is
-// refused on any device. Nothing on the site links a marker to an answer.
-// ponytail: both documents share one save time, so someone querying Firestore's internal
-// timestamps could still pair them; that's the price of enforcing one answer per login.
+// One anonymous answer per account, with a "ballot":
+//  - at login every account is issued ballots/{uid} (+ ballotIssued/{uid}, so it can't be re-issued);
+//  - sending deletes the ballot and creates feedback/{ballot's random token} in one batch — the answer holds
+//    no uid, name or email, and a deleted ballot leaves no timestamp behind to match it with;
+//  - firestore.rules only accept an answer that consumes an existing ballot, so a second answer
+//    is refused on any device. Only the account itself can read its ballot documents.
+// ponytail: the organizer can still see in the Firebase console which accounts have used their
+// ballot (who answered, never what). Re-allow someone: delete their ballotIssued doc there.
 // Organizers can fill the form as often as they like to test it: their answers go to
 // feedbackTest/ instead and never count in the results (the rules refuse them in feedback/).
 // The question ids and allowed options below must stay in sync with isValidFeedback() there.
@@ -1904,7 +1905,7 @@ const FEEDBACK_QUESTIONS = [
 ];
 const FEEDBACK_ITEMS = FEEDBACK_QUESTIONS.flatMap((s) => s.items);
 const FEEDBACK_TEXT_MAX = 3000;
-let feedbackSent = null; // null = unknown / logged out
+let feedbackSent = null; // true once this account has used its ballot; null = unknown / logged out
 
 function el(tag, props = {}, ...children) {
   const node = Object.assign(document.createElement(tag), props);
@@ -1971,7 +1972,17 @@ async function refreshFeedbackAccess(redirect = true) {
   feedbackSent = null;
   if (user) {
     try {
-      feedbackSent = (await getDoc(doc(db, "feedbackSent", user.uid))).exists();
+      const issued = (await getDoc(doc(db, "ballotIssued", user.uid))).exists();
+      if (!issued) {
+        // first visit of this account: hand out its ballot now, well before any answer is sent
+        const batch = writeBatch(db);
+        batch.set(doc(db, "ballotIssued", user.uid), {});
+        batch.set(doc(db, "ballots", user.uid), { t: doc(collection(db, "feedback")).id }); // t: random one-time answer id
+        await batch.commit();
+        feedbackSent = false;
+      } else {
+        feedbackSent = !(await getDoc(doc(db, "ballots", user.uid))).exists();
+      }
     } catch (error) {
       console.error("Failed to check feedback status:", error);
       feedbackSent = true; // fail closed: hide the form rather than let a send fail
@@ -2032,9 +2043,11 @@ if (feedbackForm) {
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
+      const ballot = await getDoc(doc(db, "ballots", auth.currentUser.uid));
+      if (!ballot.exists()) throw Object.assign(new Error("ballot used"), { code: "permission-denied" });
       const batch = writeBatch(db);
-      batch.set(doc(db, "feedbackSent", auth.currentUser.uid), {}); // "this account has answered"
-      batch.set(doc(collection(db, "feedback")), data);              // the answers: random id, no uid
+      batch.delete(ballot.ref);                                  // use up this account's ballot
+      batch.set(doc(db, "feedback", ballot.data().t), data);     // the answers: the ballot's random id, no uid
       await batch.commit();
       feedbackSent = true;
       feedbackForm.reset();
@@ -2060,13 +2073,12 @@ async function loadFeedbackResults() {
   feedbackResults.style.display = "";
   feedbackResults.textContent = "Loading responses…";
   try {
-    const [snap, sent] = await Promise.all([getDocs(collection(db, "feedback")), getDocs(collection(db, "feedbackSent"))]);
+    const snap = await getDocs(collection(db, "feedback"));
     const rows = snap.docs.map((d) => d.data());
     feedbackResults.textContent = "";
     const csv = el("button", { type: "button", className: "register-btn", style: "border: none; cursor: pointer; margin-left: 10px;", textContent: "⬇️ Download CSV" });
     csv.onclick = () => downloadFeedbackCsv(rows);
-    feedbackResults.append(el("h3", { textContent: `📊 Responses (organizer only): ${rows.length}` }, rows.length ? csv : ""),
-      el("p", { style: "font-size: 12px; color: var(--text-muted);", textContent: `${sent.size} account(s) have answered.` }));
+    feedbackResults.append(el("h3", { textContent: `📊 Responses (organizer only): ${rows.length}` }, rows.length ? csv : ""));
     if (!rows.length) return;
     FEEDBACK_ITEMS.forEach((q) => {
       const box = el("div", { className: "fb-result" }, el("strong", { textContent: q.label }));

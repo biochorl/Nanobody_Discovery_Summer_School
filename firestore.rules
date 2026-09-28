@@ -133,21 +133,34 @@ service cloud.firestore {
                d.sessions.hasOnly(['intro', 'insilico', 'denovo', 'panningBriefing', 'lab', 'talks',
                                    'fortuna', 'hadzi'])));
     }
-    // One answer per account: an answer is only accepted together with the creation of that
-    // account's (empty) feedbackSent/{uid} marker in the same batch, and a marker can never be
-    // created twice, edited or removed by its owner.
+    // One anonymous answer per account ("ballots"): each account is issued ballots/{uid} once
+    // (ballotIssued/{uid} records that it was issued, so it can't be issued again). An answer is
+    // only accepted if it uses up (deletes) the sender's ballot in the same batch; the answer
+    // itself carries no uid. Only the account itself can read its ballot documents.
     match /feedback/{id} {
       allow create: if signedIn() && !isAdmin() && isValidFeedback(request.resource.data) &&
-                       !exists(/databases/$(database)/documents/feedbackSent/$(request.auth.uid)) &&
-                       existsAfter(/databases/$(database)/documents/feedbackSent/$(request.auth.uid));
+                       exists(/databases/$(database)/documents/ballots/$(request.auth.uid)) &&
+                       // the answer's id must be the ballot's one-time token: one ballot = one answer,
+                       // even if several answers are packed into the batch that uses it up
+                       get(/databases/$(database)/documents/ballots/$(request.auth.uid)).data.t == id &&
+                       !existsAfter(/databases/$(database)/documents/ballots/$(request.auth.uid));
       allow read, delete: if isAdmin();
       allow update: if false;
     }
-    match /feedbackSent/{userId} {
-      allow read: if isSelf(userId) || isAdmin();
-      allow create: if isSelf(userId) && request.resource.data.keys().size() == 0;
+    match /ballotIssued/{userId} {
+      allow read: if isSelf(userId);
+      allow create: if isSelf(userId) && request.resource.data.keys().size() == 0 &&
+                       existsAfter(/databases/$(database)/documents/ballots/$(userId));
+      allow update, delete: if false; // the organizer can remove one in the Firebase console to re-allow
+    }
+    match /ballots/{userId} {
+      allow read: if isSelf(userId);
+      allow create: if isSelf(userId) && request.resource.data.keys().hasOnly(["t"]) &&
+                       request.resource.data.t is string && request.resource.data.t.matches("[A-Za-z0-9]{20}") &&
+                       !exists(/databases/$(database)/documents/ballotIssued/$(userId)) &&
+                       existsAfter(/databases/$(database)/documents/ballotIssued/$(userId));
+      allow delete: if isSelf(userId);
       allow update: if false;
-      allow delete: if isAdmin(); // lets the organizer allow someone to answer again
     }
     // feedbackTest/{id} — the organizer's own test answers: unlimited, never mixed with real ones.
     match /feedbackTest/{id} {
