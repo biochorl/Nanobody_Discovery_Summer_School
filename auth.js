@@ -1100,7 +1100,7 @@ function checkAdminStatus(user) {
       renderTalkMaterials(true); // adds the organizer's per-talk upload links
       if (galleryAdmin) galleryAdmin.style.display = "";
       if (isSectionActive("images")) loadGallery(); // re-render with delete buttons
-      loadFeedbackLink(); // fills the organizer's link box
+      if (isSectionActive("feedback")) loadFeedback(); // adds the organizer's results
     }
     if (navSubscribersItem) navSubscribersItem.style.display = isAdmin ? "block" : "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = isAdmin ? "flex" : "none";
@@ -1604,57 +1604,6 @@ function isDriveUrl(url) {
   return /^https:\/\/(drive|photos)\.google\.com\//.test(url || "");
 }
 
-// Anonymous feedback form (settings/feedback): same model as the photo folder link — stored in
-// Firestore, handed only to signed-in users, set by the organizer from the Subscribers tab.
-const feedbackHeader = document.getElementById("feedback-header");
-const feedbackLink = document.getElementById("feedback-link");
-const feedbackAdmin = document.getElementById("feedback-admin");
-const feedbackInput = document.getElementById("feedback-input");
-const feedbackSave = document.getElementById("feedback-save");
-const feedbackStatus = document.getElementById("feedback-status");
-
-function isFormUrl(url) {
-  return /^https:\/\/(docs\.google\.com\/forms\/|forms\.gle\/)/.test(url || "");
-}
-
-async function loadFeedbackLink() {
-  if (feedbackHeader) feedbackHeader.style.display = "none";
-  if (feedbackAdmin) feedbackAdmin.style.display = isAdmin ? "" : "none";
-  if (!auth.currentUser || !feedbackLink) return;
-  try {
-    const snap = await getDoc(doc(db, "settings", "feedback"));
-    const url = snap.exists() ? snap.data().feedbackUrl : "";
-    if (feedbackInput && isAdmin) feedbackInput.value = url || "";
-    if (!auth.currentUser || !isFormUrl(url)) return; // user may have logged out meanwhile
-    feedbackLink.href = url;
-    feedbackHeader.style.display = "";
-  } catch (error) {
-    console.error("Failed to load the feedback link:", error);
-  }
-}
-
-if (feedbackSave) {
-  feedbackSave.onclick = async () => {
-    const url = feedbackInput.value.trim();
-    if (url && !isFormUrl(url)) {
-      feedbackStatus.textContent = "⚠️ Please paste a Google Forms link (https://docs.google.com/forms/… or https://forms.gle/…).";
-      return;
-    }
-    feedbackSave.disabled = true;
-    feedbackStatus.textContent = "Saving…";
-    try {
-      await setDoc(doc(db, "settings", "feedback"), { feedbackUrl: url, updatedAt: new Date().toISOString() });
-      feedbackStatus.textContent = url ? "✅ Saved — logged-in users now see the feedback button." : "✅ Link removed.";
-      loadFeedbackLink();
-    } catch (error) {
-      console.error("Failed to save the feedback link:", error);
-      feedbackStatus.textContent = "Could not save: " + error.message;
-    } finally {
-      feedbackSave.disabled = false;
-    }
-  };
-}
-
 async function loadDriveLink() {
   if (galleryDrive) galleryDrive.style.display = "none";
   if (galleryDriveAdmin) galleryDriveAdmin.style.display = isAdmin ? "" : "none";
@@ -1872,7 +1821,8 @@ onAuthStateChanged(auth, (user) => {
     renderTalkMaterials(true);
     if (isSectionActive("images")) loadGallery();
     if (isSectionActive("participants")) loadParticipants();
-    loadFeedbackLink();
+    if (feedbackHeader) feedbackHeader.style.display = "";
+    if (isSectionActive("feedback")) loadFeedback();
 
   } else {
     // User is signed out
@@ -1889,9 +1839,255 @@ onAuthStateChanged(auth, (user) => {
     renderTalkMaterials(false);
     loadGallery(); // back to the "Soon / log in" state
     loadParticipants(); // back to the "log in" state
-    loadFeedbackLink(); // hides the button again
+    if (feedbackHeader) feedbackHeader.style.display = "none";
+    loadFeedback(); // back to the "log in" state
   }
 });
+
+// ===== Anonymous feedback (built into the site) =====
+//
+// Answers go to feedback/{random id} WITHOUT the author's uid, name or email, so organizers
+// can't tell who wrote what. firestore.rules: any signed-in user may create one well-formed
+// answer document; only the organizer can read (or delete) them; nobody can edit them.
+// The question ids and allowed options below must stay in sync with isValidFeedback() there.
+// ponytail: one response per person is only nudged (a flag in this browser), not enforced —
+// enforcing it would mean recording who answered, which defeats the anonymity.
+const feedbackHeader = document.getElementById("feedback-header");
+const feedbackLink = document.getElementById("feedback-link");
+const feedbackStatus = document.getElementById("feedback-status");
+const feedbackForm = document.getElementById("feedback-form");
+const feedbackResults = document.getElementById("feedback-results");
+
+const FEEDBACK_SESSIONS = [
+  ["intro", "Welcome & introduction to nanobody technology (Ario de Marco)"],
+  ["insilico", "In silico screening from pre-immune libraries (Klara Kropivšek)"],
+  ["denovo", "Nanobody de novo design with AI (Marco Orlando)"],
+  ["panningBriefing", "Panning against a target antigen, briefing (Claudia d'Ercole)"],
+  ["lab", "In vitro panning lab practicals (Mirna Nakić, Lucia Cikatricisová, Claudia d'Ercole)"],
+  ["talks", "Participant talks, Sessions I & II"],
+  ["fortuna", "MD-based evolution of epitope-specific nanobodies (Sara Fortuna)"],
+  ["hadzi", "Data quality in nanobody–antigen databases (San Hadži)"],
+  ["discussion", "Final regards and discussion"]
+];
+const FEEDBACK_QUESTIONS = [
+  { section: "About you", items: [
+    { id: "role", type: "radio", required: true, label: "Your role", options: ["Participant", "Speaker", "Organizer"] }] },
+  { section: "Overall experience", items: [
+    { id: "overall", type: "scale", label: "Overall, how would you rate the Summer School?", low: "Poor", high: "Excellent" },
+    { id: "liked", type: "text", label: "What did you like the most?" },
+    { id: "improve", type: "text", label: "What could be improved for future editions?" }] },
+  { section: "Scientific programme", items: [
+    { id: "sessions", type: "checks", max: 3, label: "Which sessions did you find most useful? (up to 3)", options: FEEDBACK_SESSIONS },
+    { id: "skip", type: "text", label: "Was there something we could skip in the future?" }] },
+  { section: "Practical aspects", items: [
+    { id: "balance", type: "radio", label: "Balance between theory and practice", options: ["Too theoretical", "Balanced", "Too practical"] },
+    { id: "expectations", type: "scale", label: "Did the Summer School meet your expectations?", low: "Not at all", high: "Fully" },
+    { id: "panning", type: "scale", label: "How do you rate the in vitro panning lab sessions (Thursday)?", low: "Poor", high: "Excellent" },
+    { id: "talksUseful", type: "scale", label: "How useful were the participant talks (10-min talk + discussion)?", low: "Not useful", high: "Very useful" },
+    { id: "ects", type: "radio", label: "Was the workload appropriate for 1 ECTS (30 hours)?", options: ["Too light", "About right", "Too heavy"] }] },
+  { section: "Organization and logistics", items: [
+    { id: "communication", type: "scale", label: "Communication before the Summer School", low: "Very unsatisfied", high: "Very satisfied" },
+    { id: "venues", type: "scale", label: "Venues (EPICenter, Rožna Dolina campus) and facilities", low: "Very unsatisfied", high: "Very satisfied" },
+    { id: "accommodation", type: "scale", na: true, label: "Accommodation", low: "Very unsatisfied", high: "Very satisfied" },
+    { id: "catering", type: "scale", label: "Coffee breaks and lunch", low: "Very unsatisfied", high: "Very satisfied" },
+    { id: "social", type: "scale", label: "Social programme (apero, dinner in Šmartno, minibus)", low: "Very unsatisfied", high: "Very satisfied" },
+    { id: "website", type: "scale", label: "Website (registration, slides, photos, participant list)", low: "Very unsatisfied", high: "Very satisfied" },
+    { id: "logistics", type: "text", label: "Any logistical improvements you suggest?" }] },
+  { section: "For speakers (skip if participant)", items: [
+    { id: "engagement", type: "scale", label: "How did you find the level of participant engagement?", low: "Low", high: "High" },
+    { id: "format", type: "radio", label: "Did the format (lectures, lab practicals, 10-min participant talks) work well?", options: ["Yes", "Partly", "No"] },
+    { id: "adjust", type: "text", label: "What would you adjust in future editions (content, duration, structure)?" }] },
+  { section: "Final thoughts", items: [
+    { id: "recommend", type: "radio", label: "Would you recommend this Summer School to others?", options: ["Yes", "Maybe", "No"] },
+    { id: "followUp", type: "radio", label: "Would you be interested in a follow-up (advanced or focused) edition?", options: ["Yes", "Maybe", "No"] },
+    { id: "topics", type: "text", label: "Which topics would you like in a future edition?" },
+    { id: "comments", type: "text", label: "Any additional comments?" }] }
+];
+const FEEDBACK_ITEMS = FEEDBACK_QUESTIONS.flatMap((s) => s.items);
+const FEEDBACK_TEXT_MAX = 3000;
+const FEEDBACK_SENT_FLAG = "nds-feedback-sent";
+
+function el(tag, props = {}, ...children) {
+  const node = Object.assign(document.createElement(tag), props);
+  node.append(...children);
+  return node;
+}
+
+function buildFeedbackForm() {
+  feedbackForm.textContent = "";
+  FEEDBACK_QUESTIONS.forEach((sec) => {
+    const fs = el("fieldset", {}, el("legend", { textContent: sec.section }));
+    sec.items.forEach((q) => {
+      const box = el("div", { className: "fb-q" }, el("span", { className: "fb-label", textContent: q.label + (q.required ? " *" : "") }));
+      const opts = el("div", { className: "fb-options", role: q.type === "checks" ? "group" : "radiogroup" });
+      opts.setAttribute("aria-label", q.label);
+      if (q.type === "text") {
+        box.append(el("textarea", { name: q.id, maxLength: FEEDBACK_TEXT_MAX }));
+      } else if (q.type === "scale") {
+        const values = q.na ? [1, 2, 3, 4, 5, 0] : [1, 2, 3, 4, 5];
+        values.forEach((v) => opts.append(el("label", {}, el("input", { type: "radio", name: q.id, value: String(v) }), v === 0 ? "N/A" : String(v))));
+        box.append(opts, el("div", { className: "fb-scale-ends" }, el("span", { textContent: "1 = " + q.low }), el("span", { textContent: "5 = " + q.high })));
+      } else {
+        const list = q.type === "checks" ? q.options : q.options.map((o) => [o, o]);
+        list.forEach(([value, text]) => opts.append(el("label", {}, el("input", { type: q.type === "checks" ? "checkbox" : "radio", name: q.id, value }), text)));
+        box.append(opts);
+      }
+      fs.append(box);
+    });
+    feedbackForm.append(fs);
+  });
+  const error = el("p", { id: "feedback-error", style: "color: var(--accent-rose); font-size: 13px; display: none;" });
+  feedbackForm.append(error, el("button", { type: "submit", className: "register-btn", style: "border: none; cursor: pointer;", textContent: "Send anonymous feedback" }));
+
+  // at most N ticked for "checks" questions
+  FEEDBACK_ITEMS.filter((q) => q.type === "checks").forEach((q) => {
+    feedbackForm.querySelectorAll(`input[name="${q.id}"]`).forEach((box) => box.addEventListener("change", () => {
+      const ticked = feedbackForm.querySelectorAll(`input[name="${q.id}"]:checked`);
+      if (ticked.length > q.max) box.checked = false;
+    }));
+  });
+}
+
+function readFeedbackForm() {
+  const data = { v: 1 };
+  FEEDBACK_ITEMS.forEach((q) => {
+    if (q.type === "text") {
+      const value = feedbackForm.elements[q.id].value.trim().slice(0, FEEDBACK_TEXT_MAX);
+      if (value) data[q.id] = value;
+    } else if (q.type === "checks") {
+      const ticked = [...feedbackForm.querySelectorAll(`input[name="${q.id}"]:checked`)].map((i) => i.value);
+      if (ticked.length) data[q.id] = ticked.slice(0, q.max);
+    } else {
+      const picked = feedbackForm.querySelector(`input[name="${q.id}"]:checked`);
+      if (picked) data[q.id] = q.type === "scale" ? Number(picked.value) : picked.value;
+    }
+  });
+  return data;
+}
+
+function feedbackAlreadySent() {
+  try { return localStorage.getItem(FEEDBACK_SENT_FLAG) === "1"; } catch (e) { return false; }
+}
+
+async function loadFeedback() {
+  if (!feedbackForm || !feedbackStatus) return;
+  feedbackForm.style.display = "none";
+  if (feedbackResults) { feedbackResults.style.display = "none"; feedbackResults.textContent = ""; }
+  if (!auth.currentUser) {
+    feedbackStatus.style.display = "";
+    feedbackStatus.textContent = "🔒 Log in to give feedback.";
+    return;
+  }
+  if (feedbackAlreadySent()) {
+    feedbackStatus.style.display = "";
+    feedbackStatus.textContent = "✅ Thank you — your feedback was sent from this browser. ";
+    const again = el("a", { href: "#", textContent: "Send another response" });
+    again.onclick = (e) => {
+      e.preventDefault();
+      try { localStorage.removeItem(FEEDBACK_SENT_FLAG); } catch (err) { /* ignore */ }
+      loadFeedback();
+    };
+    feedbackStatus.append(again);
+  } else {
+    feedbackStatus.style.display = "none";
+    if (!feedbackForm.childElementCount) buildFeedbackForm();
+    feedbackForm.style.display = "";
+  }
+  if (isAdmin) loadFeedbackResults();
+}
+
+if (feedbackForm) {
+  feedbackForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const error = document.getElementById("feedback-error");
+    const button = feedbackForm.querySelector('button[type="submit"]');
+    const data = readFeedbackForm();
+    if (!data.role) {
+      error.textContent = "Please tell us your role (first question).";
+      error.style.display = "";
+      return;
+    }
+    error.style.display = "none";
+    button.disabled = true;
+    button.textContent = "Sending…";
+    try {
+      await setDoc(doc(collection(db, "feedback")), data); // random id, no uid stored
+      try { localStorage.setItem(FEEDBACK_SENT_FLAG, "1"); } catch (err) { /* private mode: fine */ }
+      feedbackForm.reset();
+      loadFeedback();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      console.error("Failed to send feedback:", err);
+      error.textContent = "Could not send your feedback right now — please try again. (" + err.message + ")";
+      error.style.display = "";
+    } finally {
+      button.disabled = false;
+      button.textContent = "Send anonymous feedback";
+    }
+  });
+}
+
+// Organizer-only summary (reading feedback/* is refused by the rules for everyone else).
+async function loadFeedbackResults() {
+  if (!feedbackResults || !isAdmin) return;
+  feedbackResults.style.display = "";
+  feedbackResults.textContent = "Loading responses…";
+  try {
+    const snap = await getDocs(collection(db, "feedback"));
+    const rows = snap.docs.map((d) => d.data());
+    feedbackResults.textContent = "";
+    const csv = el("button", { type: "button", className: "register-btn", style: "border: none; cursor: pointer; margin-left: 10px;", textContent: "⬇️ Download CSV" });
+    csv.onclick = () => downloadFeedbackCsv(rows);
+    feedbackResults.append(el("h3", { textContent: `📊 Responses (organizer only): ${rows.length}` }, rows.length ? csv : ""));
+    if (!rows.length) return;
+    FEEDBACK_ITEMS.forEach((q) => {
+      const box = el("div", { className: "fb-result" }, el("strong", { textContent: q.label }));
+      const answered = rows.filter((r) => r[q.id] !== undefined);
+      if (q.type === "text") {
+        const ul = el("ul");
+        answered.forEach((r) => ul.append(el("li", { textContent: r[q.id] })));
+        box.append(answered.length ? ul : el("div", { textContent: "—" }));
+      } else if (q.type === "scale") {
+        const rated = answered.filter((r) => r[q.id] >= 1);
+        const avg = rated.length ? (rated.reduce((s, r) => s + r[q.id], 0) / rated.length).toFixed(1) : "—";
+        const dist = [1, 2, 3, 4, 5].map((v) => `${v}: ${rated.filter((r) => r[q.id] === v).length}`).join("  ·  ");
+        const na = answered.length - rated.length;
+        box.append(el("div", { textContent: `Average ${avg} / 5 (${rated.length} answers${na ? `, ${na} N/A` : ""}) — ${dist}` }));
+      } else {
+        const options = q.type === "checks" ? q.options : q.options.map((o) => [o, o]);
+        options.forEach(([value, text]) => {
+          const n = answered.filter((r) => (q.type === "checks" ? r[q.id].includes(value) : r[q.id] === value)).length;
+          box.append(el("div", {}, el("span", { className: "fb-bar", style: `width: ${n * 16}px` }), `${text}: ${n}`));
+        });
+      }
+      feedbackResults.append(box);
+    });
+  } catch (err) {
+    console.error("Failed to load feedback:", err);
+    feedbackResults.textContent = "Could not load the responses.";
+  }
+}
+
+// CSV for Excel. Cells starting with = + - @ are prefixed so a spreadsheet never runs them
+// as formulas (someone could type "=HYPERLINK(...)" into a comment box).
+function downloadFeedbackCsv(rows) {
+  const cell = (v) => {
+    let s = Array.isArray(v) ? v.join("; ") : v === undefined ? "" : String(v);
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+    return '"' + s.replace(/"/g, '""') + '"';
+  };
+  const lines = [FEEDBACK_ITEMS.map((q) => cell(q.id)).join(",")]
+    .concat(rows.map((r) => FEEDBACK_ITEMS.map((q) => cell(r[q.id])).join(",")));
+  const url = URL.createObjectURL(new Blob(["﻿" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" }));
+  const a = el("a", { href: url, download: "summer-school-feedback.csv" });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+feedbackLink?.addEventListener("click", (e) => { e.preventDefault(); goToSection("feedback"); loadFeedback(); });
+document.querySelectorAll('[data-target="feedback"]').forEach((link) => link.addEventListener("click", () => loadFeedback()));
 
 // ===== Event wiring =====
 // Buttons are wired here rather than with inline onclick="…" attributes, so the page's

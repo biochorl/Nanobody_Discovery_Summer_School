@@ -5,12 +5,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Only this site, Firebase and Google Fonts/Analytics may load code or receive data; no inline scripts -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; img-src 'self' data: blob: https://*.google-analytics.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://ai-based-protein-design.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com; connect-src 'self' https://*.googleapis.com https://*.google-analytics.com https://*.analytics.google.com https://www.googletagmanager.com; img-src 'self' data: blob: https://*.google-analytics.com https://www.googletagmanager.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-src https://ai-based-protein-design.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Nanobody Discovery Summer School: Current & Future Methods</title>
   <meta name="description"
     content="Summer School on AI-based methods for de novo protein and nanobody binder design. 23-25 Sep 2026, University of Nova Gorica. Hands-on training, keynote lectures, and peer-to-peer sessions.">
-  <link rel="stylesheet" href="style.css?v=28">
+  <link rel="stylesheet" href="style.css?v=29">
   <link
     href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
     rel="stylesheet">
@@ -66,7 +66,7 @@
       <a href="flyer.pdf?v=20260928" target="_blank" rel="noopener" class="header-map-btn" title="Download the event flyer (PDF)">📄 Download Flyer (PDF)</a>
     </div>
     <div id="feedback-header" class="header-location-container" style="margin-top: 8px; display: none;">
-      <a id="feedback-link" href="#" target="_blank" rel="noopener noreferrer" class="header-map-btn" title="Anonymous feedback form (Google Forms)">📝 Give anonymous feedback</a>
+      <a id="feedback-link" href="#" class="header-map-btn" title="Anonymous feedback form">📝 Give anonymous feedback</a>
     </div>
 
   </header>
@@ -86,6 +86,7 @@
           <li><a href="#" class="nav-link" data-target="social" data-i18n="nav_evening">Social Activities</a></li>
           <li><a href="#" class="nav-link" data-target="images" data-i18n="nav_images">Images</a></li>
           <li><a href="#" class="nav-link" data-target="participants" data-i18n="nav_participants">Participants</a></li>
+          <li><a href="#" class="nav-link" data-target="feedback" data-i18n="nav_feedback">Feedback</a></li>
           <li><a href="#" class="nav-link" data-target="faqs" data-i18n="nav_faqs">FAQs</a></li>
           <li><a href="#" class="nav-link" data-target="about" data-i18n="nav_about">About Us</a></li>
         </ul>
@@ -740,15 +741,6 @@
         <h3 data-i18n="subs_h2">🛡️ Subscribers</h3>
         <div class="admin-badge" data-i18n="subs_badge">Organizer view — read-only. You can see what participants have entered, but cannot edit their information from here.</div>
 
-        <div id="feedback-admin" style="display: none; margin: 12px 0 20px;">
-          <label for="feedback-input" style="font-size: 13px; color: var(--text-muted);">Anonymous feedback form link (shown to logged-in users in the page header):</label>
-          <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
-            <input type="url" id="feedback-input" placeholder="https://docs.google.com/forms/d/e/…/viewform" style="flex: 1; min-width: 240px; padding: 8px 12px; border: 1px solid var(--border-glass); border-radius: 8px; font: inherit;">
-            <button type="button" id="feedback-save" class="register-btn" style="border: none; cursor: pointer; padding: 9px 20px; font-size: 13px;">Save link</button>
-          </div>
-          <div id="feedback-status" style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"></div>
-        </div>
-
         <div id="subscribers-list-view">
           <div id="subscribers-list" class="subscribers-list">
             <p id="subscribers-loading" style="color: var(--text-muted); font-size: 14px;" data-i18n="subs_loading">Loading subscribers…</p>
@@ -888,6 +880,14 @@
         <div id="participants-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;"></div>
       </section>
 
+      <section id="feedback" class="page-section">
+        <h3>📝 Feedback</h3>
+        <p style="font-size: 13px; color: var(--text-muted);">Your answers are anonymous: they are stored without your name, email or account, and only the organizers can read them. Every question is optional except your role.</p>
+        <p id="feedback-status" style="font-size: 16px; color: var(--text-muted);">🔒 Log in to give feedback.</p>
+        <form id="feedback-form" style="display: none;" novalidate></form>
+        <div id="feedback-results" style="display: none; margin-top: 32px;"></div>
+      </section>
+
       <section id="faqs" class="page-section">
 
 
@@ -999,6 +999,7 @@
     <a href="#" class="mob-nav-link" data-target="social"><span class="nav-icon">🎉</span>Social</a>
     <a href="#" class="mob-nav-link" data-target="images"><span class="nav-icon">📷</span>Images</a>
     <a href="#" class="mob-nav-link" data-target="participants"><span class="nav-icon">👥</span>People</a>
+    <a href="#" class="mob-nav-link" data-target="feedback"><span class="nav-icon">📝</span>Feedback</a>
     <a href="#" class="mob-nav-link" data-target="faqs"><span class="nav-icon">❓</span>FAQs</a>
     <a href="#" class="mob-nav-link" data-target="about"><span class="nav-icon">ℹ️</span>About</a>
   </nav>
@@ -1053,8 +1054,8 @@
   </div>
 
   <script src="script.js?v=19"></script>
-  <script src="lang.js?v=19"></script>
-  <script type="module" src="auth.js?v=36"></script>
+  <script src="lang.js?v=20"></script>
+  <script type="module" src="auth.js?v=37"></script>
 </body>
 
 </html>

@@ -97,17 +97,48 @@ service cloud.firestore {
       allow delete: if isSelf(userId) || isAdmin();
     }
 
-    // settings/photos = { driveUrl } and settings/feedback = { feedbackUrl } — the shared photo
-    // folder and the anonymous feedback form: signed-in users can read them, only the
-    // organizer can set them, and only to a Google Drive / Google Forms https link.
+    // settings/photos = { driveUrl } — the shared photo folder link: signed-in users can read
+    // it, only the organizer can set it, and only to a Google Drive / Photos https link.
     match /settings/{docId} {
       allow read: if signedIn();
-      allow write: if isAdmin() && docId in ['photos', 'feedback'] &&
-                      request.resource.data.keys().hasOnly(['driveUrl', 'feedbackUrl', 'updatedAt']) &&
-                      (!('driveUrl' in request.resource.data) ||
-                        request.resource.data.driveUrl.matches('(https://(drive|photos)[.]google[.]com/.*)?')) &&
-                      (!('feedbackUrl' in request.resource.data) ||
-                        request.resource.data.feedbackUrl.matches('(https://(docs[.]google[.]com/forms/|forms[.]gle/).*)?'));
+      allow write: if isAdmin() && docId == 'photos' &&
+                      request.resource.data.keys().hasOnly(['driveUrl', 'updatedAt']) &&
+                      request.resource.data.driveUrl.matches('(https://(drive|photos)[.]google[.]com/.*)?');
+    }
+
+    // feedback/{id} — anonymous answers (no uid/name/email is stored). Any signed-in user can
+    // add one well-formed answer; only the organizer can read or delete them; nobody edits them.
+    // Must match FEEDBACK_QUESTIONS in auth.js.
+    function fbScale(d, k) { return !(k in d) || (d[k] is int && d[k] >= 1 && d[k] <= 5); }
+    function fbText(d, k) { return !(k in d) || (d[k] is string && d[k].size() > 0 && d[k].size() <= 3000); }
+    function fbPick(d, k, opts) { return !(k in d) || d[k] in opts; }
+    function isValidFeedback(d) {
+      return d.keys().hasOnly(['v', 'role', 'overall', 'liked', 'improve', 'sessions', 'skip',
+                               'balance', 'expectations', 'panning', 'talksUseful', 'ects',
+                               'communication', 'venues', 'accommodation', 'catering', 'social',
+                               'website', 'logistics', 'engagement', 'format', 'adjust',
+                               'recommend', 'followUp', 'topics', 'comments']) &&
+             d.v == 1 && d.role in ['Participant', 'Speaker', 'Organizer'] &&
+             fbScale(d, 'overall') && fbScale(d, 'expectations') && fbScale(d, 'panning') &&
+             fbScale(d, 'talksUseful') && fbScale(d, 'communication') && fbScale(d, 'venues') &&
+             fbScale(d, 'catering') && fbScale(d, 'social') && fbScale(d, 'website') &&
+             fbScale(d, 'engagement') &&
+             (!('accommodation' in d) || (d.accommodation is int && d.accommodation >= 0 && d.accommodation <= 5)) &&
+             fbText(d, 'liked') && fbText(d, 'improve') && fbText(d, 'skip') && fbText(d, 'logistics') &&
+             fbText(d, 'adjust') && fbText(d, 'topics') && fbText(d, 'comments') &&
+             fbPick(d, 'balance', ['Too theoretical', 'Balanced', 'Too practical']) &&
+             fbPick(d, 'ects', ['Too light', 'About right', 'Too heavy']) &&
+             fbPick(d, 'format', ['Yes', 'Partly', 'No']) &&
+             fbPick(d, 'recommend', ['Yes', 'Maybe', 'No']) &&
+             fbPick(d, 'followUp', ['Yes', 'Maybe', 'No']) &&
+             (!('sessions' in d) || (d.sessions is list && d.sessions.size() >= 1 && d.sessions.size() <= 3 &&
+               d.sessions.hasOnly(['intro', 'insilico', 'denovo', 'panningBriefing', 'lab', 'talks',
+                                   'fortuna', 'hadzi', 'discussion'])));
+    }
+    match /feedback/{id} {
+      allow create: if signedIn() && isValidFeedback(request.resource.data);
+      allow read, delete: if isAdmin();
+      allow update: if false;
     }
 
     // gallery/{imageId} (+ its chunks) — workshop photos: any signed-in user can view,

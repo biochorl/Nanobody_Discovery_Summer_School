@@ -1505,4 +1505,15 @@ blockquote {
   color: var(--text-muted);
 }
 
-
+/* ===== Feedback form ===== */
+#feedback-form fieldset { border: 1px solid var(--border-glass); border-radius: var(--radius-sm); padding: 16px 18px; margin: 0 0 16px; }
+#feedback-form legend { font-weight: 700; padding: 0 6px; }
+.fb-q { margin: 14px 0; }
+.fb-q > .fb-label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+.fb-options { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+.fb-options label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.fb-scale-ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); max-width: 320px; margin-top: 4px; }
+#feedback-form textarea { width: 100%; min-height: 70px; padding: 10px 12px; border: 1px solid var(--border-glass); border-radius: var(--radius-sm); font: inherit; box-sizing: border-box; }
+.fb-bar { height: 8px; background: var(--accent); border-radius: 4px; display: inline-block; vertical-align: middle; margin-right: 6px; }
+.fb-result { margin: 12px 0; font-size: 13px; }
+.fb-result ul { margin: 6px 0 0 18px; padding: 0; }
