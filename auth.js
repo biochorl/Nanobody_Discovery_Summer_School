@@ -1506,6 +1506,7 @@ async function loadParticipants() {
     return;
   }
   participantsStatus.textContent = "Loading…";
+  const user = auth.currentUser;
   try {
     if (isAdmin) {
       // Organizer view: refresh the directory from the profiles first, so what you see here is
@@ -1514,6 +1515,7 @@ async function loadParticipants() {
       await syncDirectory(users.docs.map((d) => ({ uid: d.id, data: d.data() })));
     }
     const snap = await getDocs(collection(db, "directory"));
+    if (auth.currentUser !== user) return; // logged out while loading: show nothing
     const people = snap.docs.map((d) => d.data())
       .filter((p) => p.fullName || p.email)
       .sort((x, y) => (x.fullName || x.email).localeCompare(y.fullName || y.email));
@@ -1610,6 +1612,7 @@ async function loadDriveLink() {
   if (!auth.currentUser || !galleryDriveLink) return false;
   try {
     const snap = await getDoc(doc(db, "settings", "photos"));
+    if (!auth.currentUser) return false;
     const url = snap.exists() ? snap.data().driveUrl : "";
     if (galleryDriveInput && isAdmin) galleryDriveInput.value = url || "";
     if (!isDriveUrl(url)) return false;
@@ -1655,8 +1658,10 @@ async function loadGallery() {
     return;
   }
   galleryStatus.textContent = "Loading…";
+  const user = auth.currentUser;
   try {
     const snap = await getDocs(collection(db, "gallery"));
+    if (auth.currentUser !== user) return; // logged out while loading: show nothing
     const items = snap.docs
       .map((d) => ({ id: d.id, ...d.data() }))
       .filter((item) => item.chunkCount)
@@ -1837,6 +1842,9 @@ onAuthStateChanged(auth, (user) => {
     }
     renderTalkMaterials(false);
     loadGallery(); // back to the "Soon / log in" state
+    document.querySelectorAll('[aria-label="Photo viewer"]').forEach((o) => o.remove());
+    feedbackForm?.reset(); // a half-filled form must not carry over to the next person on this browser
+    if (feedbackResults) feedbackResults.textContent = "";
     loadParticipants(); // back to the "log in" state
     refreshFeedbackAccess(); // hides the Feedback tab and button again
   }
@@ -2074,6 +2082,7 @@ async function loadFeedbackResults() {
   feedbackResults.textContent = "Loading responses…";
   try {
     const snap = await getDocs(collection(db, "feedback"));
+    if (!isAdmin) { feedbackResults.textContent = ""; return; } // logged out while loading
     const rows = snap.docs.map((d) => d.data());
     feedbackResults.textContent = "";
     const csv = el("button", { type: "button", className: "register-btn", style: "border: none; cursor: pointer; margin-left: 10px;", textContent: "⬇️ Download CSV" });
