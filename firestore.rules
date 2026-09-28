@@ -116,8 +116,8 @@ service cloud.firestore {
       return d.keys().hasOnly(['v', 'role', 'overall', 'liked', 'improve', 'sessions', 'skip',
                                'balance', 'expectations', 'panning', 'talksUseful', 'ects',
                                'communication', 'venues', 'accommodation', 'catering', 'social',
-                               'website', 'logistics', 'engagement', 'format', 'adjust',
-                               'recommend', 'followUp', 'topics', 'comments']) &&
+                               'website', 'logistics', 'engagement', 'adjust',
+                               'recommend', 'topics', 'comments']) &&
              d.v == 1 && d.role in ['Participant', 'Speaker', 'Organizer'] &&
              fbScale(d, 'overall') && fbScale(d, 'expectations') && fbScale(d, 'panning') &&
              fbScale(d, 'talksUseful') && fbScale(d, 'communication') && fbScale(d, 'venues') &&
@@ -128,12 +128,10 @@ service cloud.firestore {
              fbText(d, 'adjust') && fbText(d, 'topics') && fbText(d, 'comments') &&
              fbPick(d, 'balance', ['Too theoretical', 'Balanced', 'Too practical']) &&
              fbPick(d, 'ects', ['Too light', 'About right', 'Too heavy']) &&
-             fbPick(d, 'format', ['Yes', 'Partly', 'No']) &&
              fbPick(d, 'recommend', ['Yes', 'Maybe', 'No']) &&
-             fbPick(d, 'followUp', ['Yes', 'Maybe', 'No']) &&
              (!('sessions' in d) || (d.sessions is list && d.sessions.size() >= 1 && d.sessions.size() <= 3 &&
                d.sessions.hasOnly(['intro', 'insilico', 'denovo', 'panningBriefing', 'lab', 'talks',
-                                   'fortuna', 'hadzi', 'discussion'])));
+                                   'fortuna', 'hadzi'])));
     }
     match /feedback/{id} {
       allow create: if signedIn() && isValidFeedback(request.resource.data);

@@ -1859,15 +1859,14 @@ const feedbackForm = document.getElementById("feedback-form");
 const feedbackResults = document.getElementById("feedback-results");
 
 const FEEDBACK_SESSIONS = [
-  ["intro", "Welcome & introduction to nanobody technology (Ario de Marco)"],
+  ["intro", "Introduction to nanobody technology (Ario de Marco)"],
   ["insilico", "In silico screening from pre-immune libraries (Klara Kropivšek)"],
   ["denovo", "Nanobody de novo design with AI (Marco Orlando)"],
   ["panningBriefing", "Panning against a target antigen, briefing (Claudia d'Ercole)"],
   ["lab", "In vitro panning lab practicals (Mirna Nakić, Lucia Cikatricisová, Claudia d'Ercole)"],
   ["talks", "Participant talks, Sessions I & II"],
   ["fortuna", "MD-based evolution of epitope-specific nanobodies (Sara Fortuna)"],
-  ["hadzi", "Data quality in nanobody–antigen databases (San Hadži)"],
-  ["discussion", "Final regards and discussion"]
+  ["hadzi", "Data quality in nanobody–antigen databases (San Hadži)"]
 ];
 const FEEDBACK_QUESTIONS = [
   { section: "About you", items: [
@@ -1878,7 +1877,7 @@ const FEEDBACK_QUESTIONS = [
     { id: "improve", type: "text", label: "What could be improved for future editions?" }] },
   { section: "Scientific programme", items: [
     { id: "sessions", type: "checks", max: 3, label: "Which sessions did you find most useful? (up to 3)", options: FEEDBACK_SESSIONS },
-    { id: "skip", type: "text", label: "Was there something we could skip in the future?" }] },
+    { id: "skip", type: "text", label: "Is there something we could skip or add in the future?" }] },
   { section: "Practical aspects", items: [
     { id: "balance", type: "radio", label: "Balance between theory and practice", options: ["Too theoretical", "Balanced", "Too practical"] },
     { id: "expectations", type: "scale", label: "Did the Summer School meet your expectations?", low: "Not at all", high: "Fully" },
@@ -1895,11 +1894,9 @@ const FEEDBACK_QUESTIONS = [
     { id: "logistics", type: "text", label: "Any logistical improvements you suggest?" }] },
   { section: "For speakers (skip if participant)", items: [
     { id: "engagement", type: "scale", label: "How did you find the level of participant engagement?", low: "Low", high: "High" },
-    { id: "format", type: "radio", label: "Did the format (lectures, lab practicals, 10-min participant talks) work well?", options: ["Yes", "Partly", "No"] },
     { id: "adjust", type: "text", label: "What would you adjust in future editions (content, duration, structure)?" }] },
   { section: "Final thoughts", items: [
     { id: "recommend", type: "radio", label: "Would you recommend this Summer School to others?", options: ["Yes", "Maybe", "No"] },
-    { id: "followUp", type: "radio", label: "Would you be interested in a follow-up (advanced or focused) edition?", options: ["Yes", "Maybe", "No"] },
     { id: "topics", type: "text", label: "Which topics would you like in a future edition?" },
     { id: "comments", type: "text", label: "Any additional comments?" }] }
 ];
