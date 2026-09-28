@@ -1881,7 +1881,7 @@ const FEEDBACK_SESSIONS = [
 ];
 const FEEDBACK_QUESTIONS = [
   { section: "About you", items: [
-    { id: "role", type: "radio", required: true, label: "Your role", options: ["Participant", "Speaker", "Organizer"] }] },
+    { id: "role", type: "radio", required: true, label: "Your role", options: ["Participant", "Speaker"] }] },
   { section: "Overall experience", items: [
     { id: "overall", type: "scale", label: "Overall, how would you rate the Summer School?", low: "Poor", high: "Excellent" },
     { id: "liked", type: "text", label: "What did you like the most?" },
