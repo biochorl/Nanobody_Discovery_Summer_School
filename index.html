@@ -846,6 +846,18 @@
       <section id="images" class="page-section">
         <h3>📷 Workshop Images</h3>
         <p id="gallery-status" style="font-size: 18px; color: var(--text-muted);">Soon</p>
+        <div id="gallery-drive" style="display: none; margin-bottom: 20px;">
+          <a id="gallery-drive-link" href="#" target="_blank" rel="noopener" class="register-btn">📁 Open the shared photo folder</a>
+          <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;">Google Drive folder with all the workshop photos — you can view, download and add your own.</div>
+        </div>
+        <div id="gallery-drive-admin" style="display: none; margin-bottom: 16px;">
+          <label for="gallery-drive-input" style="font-size: 13px; color: var(--text-muted);">Shared photo folder link (organizer):</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;">
+            <input type="url" id="gallery-drive-input" placeholder="https://drive.google.com/drive/folders/…" style="flex: 1; min-width: 240px; padding: 8px 12px; border: 1px solid var(--border-glass); border-radius: 8px; font: inherit;">
+            <button type="button" id="gallery-drive-save" class="register-btn" style="border: none; cursor: pointer; padding: 9px 20px; font-size: 13px;">Save link</button>
+          </div>
+          <div id="gallery-drive-status" style="font-size: 12px; color: var(--text-muted); margin-top: 6px;"></div>
+        </div>
         <div id="gallery-admin" style="display: none; margin-bottom: 16px;">
           <label for="gallery-input" class="register-btn" style="cursor: pointer; padding: 9px 20px; font-size: 13px;">⬆️ Add photos (organizer)</label>
           <input type="file" id="gallery-input" accept="image/*" multiple style="display: none;">
@@ -1025,7 +1037,7 @@
 
   <script src="script.js?v=17"></script>
   <script src="lang.js?v=18"></script>
-  <script type="module" src="auth.js?v=31"></script>
+  <script type="module" src="auth.js?v=32"></script>
 </body>
 
 </html>

@@ -139,6 +139,12 @@ const galleryAdmin = document.getElementById("gallery-admin");
 const galleryInput = document.getElementById("gallery-input");
 const galleryUploadStatus = document.getElementById("gallery-upload-status");
 const galleryGrid = document.getElementById("gallery-grid");
+const galleryDrive = document.getElementById("gallery-drive");
+const galleryDriveLink = document.getElementById("gallery-drive-link");
+const galleryDriveAdmin = document.getElementById("gallery-drive-admin");
+const galleryDriveInput = document.getElementById("gallery-drive-input");
+const galleryDriveSave = document.getElementById("gallery-drive-save");
+const galleryDriveStatus = document.getElementById("gallery-drive-status");
 const subsSpeakerStatus = document.getElementById("subs-speaker-status");
 
 const POSITION_LABELS = {
@@ -1570,11 +1576,58 @@ function blobToDataUrl(blob) {
   });
 }
 
+// The shared Google Drive folder link lives in Firestore (settings/photos, readable only when
+// signed in, writable only by the organizer) — never in the page source or the public repo.
+function isDriveUrl(url) {
+  return /^https:\/\/(drive|photos)\.google\.com\//.test(url || "");
+}
+
+async function loadDriveLink() {
+  if (galleryDrive) galleryDrive.style.display = "none";
+  if (galleryDriveAdmin) galleryDriveAdmin.style.display = isAdmin ? "" : "none";
+  if (!auth.currentUser || !galleryDriveLink) return false;
+  try {
+    const snap = await getDoc(doc(db, "settings", "photos"));
+    const url = snap.exists() ? snap.data().driveUrl : "";
+    if (galleryDriveInput && isAdmin) galleryDriveInput.value = url || "";
+    if (!isDriveUrl(url)) return false;
+    galleryDriveLink.href = url;
+    galleryDrive.style.display = "";
+    return true;
+  } catch (error) {
+    console.error("Failed to load the photo folder link:", error);
+    return false;
+  }
+}
+
+if (galleryDriveSave) {
+  galleryDriveSave.onclick = async () => {
+    const url = galleryDriveInput.value.trim();
+    if (url && !isDriveUrl(url)) {
+      galleryDriveStatus.textContent = "⚠️ Please paste a Google Drive link (https://drive.google.com/…).";
+      return;
+    }
+    galleryDriveSave.disabled = true;
+    galleryDriveStatus.textContent = "Saving…";
+    try {
+      await setDoc(doc(db, "settings", "photos"), { driveUrl: url, updatedAt: new Date().toISOString() });
+      galleryDriveStatus.textContent = url ? "✅ Saved — logged-in users now see the folder button." : "✅ Link removed.";
+      loadGallery();
+    } catch (error) {
+      console.error("Failed to save the photo folder link:", error);
+      galleryDriveStatus.textContent = "Could not save: " + error.message;
+    } finally {
+      galleryDriveSave.disabled = false;
+    }
+  };
+}
+
 async function loadGallery() {
   if (!galleryGrid || !galleryStatus) return;
   galleryGrid.textContent = "";
   galleryStatus.style.display = "";
   if (galleryAdmin) galleryAdmin.style.display = isAdmin ? "" : "none";
+  const hasDrive = await loadDriveLink();
   if (!auth.currentUser) {
     galleryStatus.textContent = "Soon — the workshop photos will be visible here to registered participants after login.";
     return;
@@ -1588,7 +1641,7 @@ async function loadGallery() {
       .sort((x, y) => (x.uploadedAt || "").localeCompare(y.uploadedAt || ""));
     galleryGrid.textContent = "";
     galleryStatus.textContent = "Soon";
-    galleryStatus.style.display = items.length ? "none" : "";
+    galleryStatus.style.display = items.length || hasDrive ? "none" : "";
     items.forEach((item) => galleryGrid.appendChild(galleryTile(item)));
   } catch (error) {
     console.error("Failed to load gallery:", error);
