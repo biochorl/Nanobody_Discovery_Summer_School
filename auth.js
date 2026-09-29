@@ -1100,7 +1100,7 @@ function checkAdminStatus(user) {
       renderTalkMaterials(true); // adds the organizer's per-talk upload links
       if (galleryAdmin) galleryAdmin.style.display = "";
       if (isSectionActive("images")) loadGallery(); // re-render with delete buttons
-      refreshFeedbackAccess(); // the organizer keeps the Feedback tab, for the results
+      refreshFeedbackAccess(); // re-render as organizer (test mode + results)
     }
     if (navSubscribersItem) navSubscribersItem.style.display = isAdmin ? "block" : "none";
     if (mobNavSubscribersLink) mobNavSubscribersLink.style.display = isAdmin ? "flex" : "none";
@@ -1846,7 +1846,7 @@ onAuthStateChanged(auth, (user) => {
     feedbackForm?.reset(); // a half-filled form must not carry over to the next person on this browser
     if (feedbackResults) feedbackResults.textContent = "";
     loadParticipants(); // back to the "log in" state
-    refreshFeedbackAccess(); // hides the Feedback tab and button again
+    refreshFeedbackAccess(); // back to the "log in" note
   }
 });
 
@@ -1863,7 +1863,6 @@ onAuthStateChanged(auth, (user) => {
 // Organizers can fill the form as often as they like to test it: their answers go to
 // feedbackTest/ instead and never count in the results (the rules refuse them in feedback/).
 // The question ids and allowed options below must stay in sync with isValidFeedback() there.
-const feedbackHeader = document.getElementById("feedback-header");
 const feedbackLink = document.getElementById("feedback-link");
 const feedbackStatus = document.getElementById("feedback-status");
 const feedbackForm = document.getElementById("feedback-form");
@@ -1973,9 +1972,9 @@ function readFeedbackForm() {
   return data;
 }
 
-// The Feedback tab is only offered to logged-in users who haven't answered yet
-// (the organizer always keeps it, for the results).
-async function refreshFeedbackAccess(redirect = true) {
+// The Feedback tab and button are visible to everyone; the form itself only to logged-in
+// users who haven't answered yet (logged out: "log in" note; answered: thank-you).
+async function refreshFeedbackAccess() {
   const user = auth.currentUser;
   feedbackSent = null;
   if (user) {
@@ -1997,11 +1996,7 @@ async function refreshFeedbackAccess(redirect = true) {
     }
     if (auth.currentUser !== user) return; // logged out meanwhile
   }
-  const show = !!user && (!feedbackSent || isAdmin);
-  document.querySelectorAll('[data-target="feedback"]').forEach((a) => { (a.closest("li") || a).style.display = show ? "" : "none"; });
-  if (feedbackHeader) feedbackHeader.style.display = show && (!feedbackSent || isAdmin) ? "" : "none";
-  if (!show && redirect && isSectionActive("feedback")) goToSection("overview");
-  if (show && isSectionActive("feedback")) loadFeedback();
+  if (isSectionActive("feedback")) loadFeedback();
 }
 
 async function loadFeedback() {
@@ -2060,7 +2055,6 @@ if (feedbackForm) {
       feedbackSent = true;
       feedbackForm.reset();
       loadFeedback();                 // shows the thank-you
-      refreshFeedbackAccess(false);   // removes the tab/button, but leaves the thank-you on screen
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       console.error("Failed to send feedback:", err);
